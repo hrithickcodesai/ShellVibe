@@ -1,0 +1,22 @@
+[project]
+name = "shellvibe"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=4.5.0",
+    "matplotlib>=3.10.8",
+    "python-dotenv>=1.2.1",
+    "seaborn>=0.13.2",
+    "torch>=2.10.0",
+    "transformers>=5.1.0",
+    "wandb>=0.25.0",
+    "wordcloud>=1.9.6",
+]
+
+[dependency-groups]
+dev = [
+    "ipywidgets>=8.1.8",
+    "ruff>=0.15.1",
+]
