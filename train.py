@@ -15,22 +15,22 @@ load_dotenv()
 
 
 config = {
-    "model_id": "google/gemma-3-270m",
-    "wandb_project": "gemma-bash-sft",
+    "model_id": "Qwen/Qwen2.5-Coder-0.5B",
+    "wandb_project": "qwen-coder-bash-sft",
     "use_wandb": True,
     "out_dir": "checkpoints",
     "data_dir": "data",
-    "batch_size": 8,
+    "batch_size": 2,
     "max_lr": 2e-5,
     "min_lr_ratio": 0.10,
-    "warmup_steps": 100,
+    "warmup_steps": 500,
     "max_epochs": 3,
-    "log_interval": 1,
+    "log_interval": 50,
     "eval_interval": 500,
     "grad_clip": 1.0,
     "weight_decay": 0.01,
     "seed": 1337,
-    "wandb_mode": "online",  # set to "online" to enable wandb logging,
+    "wandb_mode": "offline",  # set to "online" to enable wandb logging,
 }
 
 
@@ -45,8 +45,7 @@ def setup_device():
         device = "cuda"
         device_type = "cuda"
         print(f"Using CUDA: {torch.cuda.get_device_name(0)}")
-        # dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        dtype = torch.float32
+        dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     elif torch.backends.mps.is_available():
         device = "mps"
         device_type = "mps"
@@ -77,7 +76,6 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
     model.eval()
     total_loss = 0.0
     total_edit_dist = 0.0
-    num_samples = 0
     num_gen_samples = 0
 
     examples_to_print = []
@@ -96,7 +94,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
         else nullcontext()
     )
 
-    for batch_idx, batch in enumerate(dataloader):
+    for batch in dataloader:
         input_ids = batch["input_ids"].to(device)
         labels = batch["labels"].to(device)
         attention_mask = batch["attention_mask"].to(device)
@@ -106,33 +104,29 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
                 input_ids=input_ids, attention_mask=attention_mask, labels=labels
             )
         total_loss += outputs.loss.item()
-        num_samples += 1
 
-        prompts_tensors = []
+        prompt_only_ids = []
         target_strings = []
 
-        for i in range(len(input_ids)):
-            valid_prompt_mask = (labels[i] == -100) & (attention_mask[i] == 1)
-            prompt_len = valid_prompt_mask.sum().item()
+        for i in range(input_ids.size(0)):
+            prompt_mask = (labels[i] == -100) & (attention_mask[i] == 1)
+            target_mask = labels[i] != -100
 
-            valid_target_mask = (labels[i] != -100) & (attention_mask[i] == 1)
-            target_len = valid_target_mask.sum().item()
+            prompt_ids = input_ids[i][prompt_mask]  # shape: (prompt_len,)
+            target_ids = input_ids[i][target_mask]  # shape: (target_len,)
 
-            prompt_ids = input_ids[i, :prompt_len]
-            prompts_tensors.append(prompt_ids)
-
-            target_ids = input_ids[i, prompt_len : prompt_len + target_len]
+            prompt_only_ids.append(prompt_ids)
             target_strings.append(
                 tokenizer.decode(target_ids, skip_special_tokens=True)
             )
 
-        prompts_reversed = [p.flip(0) for p in prompts_tensors]
+        prompts_reversed = [p.flip(0) for p in prompt_only_ids]
         prompt_ids_reversed = pad_sequence(
             prompts_reversed, batch_first=True, padding_value=pad_id
         )
         generation_inputs = prompt_ids_reversed.flip(1).to(device)
         generation_mask = (generation_inputs != pad_id).long()
-        print(f"Generating for batch {batch_idx}...")
+
         with autocast_ctx:
             generated_ids = model.generate(
                 input_ids=generation_inputs,
@@ -144,8 +138,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
             )
 
         for i, (full_seq, target_str) in enumerate(zip(generated_ids, target_strings)):
-            input_len = generation_inputs[i].size(0)
-
+            input_len = generation_inputs.size(1)
             new_tokens = full_seq[input_len:]
             generated_str = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
@@ -154,7 +147,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
 
             if len(examples_to_print) < 3:
                 prompt_str = tokenizer.decode(
-                    prompts_tensors[i], skip_special_tokens=True
+                    prompt_only_ids[i], skip_special_tokens=True
                 )
                 examples_to_print.append(
                     {
@@ -164,7 +157,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
                     }
                 )
 
-        num_gen_samples += len(input_ids)
+        num_gen_samples += input_ids.size(0)
 
     tokenizer.padding_side = original_padding_side
     model.train()
@@ -177,7 +170,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
     print("=" * 60)
 
     for i, ex in enumerate(examples_to_print):
-        print(f"\n--- Example {i+1} ---")
+        print(f"\n--- Example {i + 1} ---")
         p_text = ex["prompt"].replace("\n", " ")
         print(f"INPUT:  {p_text[:80]}...")
         print(f"TARGET: {ex['target'].strip()}")
@@ -188,7 +181,9 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
 
 def save_checkpoint(model, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    torch.save(model.state_dict(), path)
+    # Unwrap torch.compile wrapper if present so state_dict keys are clean
+    raw_model = model._orig_mod if hasattr(model, "_orig_mod") else model
+    torch.save(raw_model.state_dict(), path)
     print(f"Saved checkpoint: {path}")
 
 
@@ -202,7 +197,13 @@ def main():
             config={
                 "model": config["model_id"],
                 "batch_size": config["batch_size"],
-                "lr": config["max_lr"],
+                "max_lr": config["max_lr"],
+                "min_lr_ratio": config["min_lr_ratio"],
+                "warmup_steps": config["warmup_steps"],
+                "max_epochs": config["max_epochs"],
+                "weight_decay": config["weight_decay"],
+                "grad_clip": config["grad_clip"],
+                "eval_interval": config["eval_interval"],
                 "dtype": str(dtype),
             },
             mode=config["wandb_mode"],
@@ -213,7 +214,7 @@ def main():
 
     model = AutoModelForCausalLM.from_pretrained(
         config["model_id"],
-        dtype=dtype,
+        torch_dtype=dtype,
         attn_implementation="sdpa" if device_type == "cuda" else "eager",
     )
     model.to(device)
@@ -242,12 +243,14 @@ def main():
     )
     collator = SFTCollator(pad_token_id=pad_id)
 
+    num_workers = os.cpu_count() if device_type == "cuda" else 0
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=config["batch_size"],
         shuffle=True,
         collate_fn=collator,
-        num_workers=os.cpu_count(),
+        num_workers=num_workers,
         pin_memory=device_type == "cuda",
     )
     val_loader = DataLoader(
@@ -255,9 +258,9 @@ def main():
         batch_size=config["batch_size"],
         shuffle=False,
         collate_fn=collator,
-        num_workers=os.cpu_count(),
+        num_workers=num_workers,
         pin_memory=device_type == "cuda",
-        persistent_workers=True,
+        persistent_workers=num_workers > 0,
     )
 
     min_lr = config["max_lr"] * config["min_lr_ratio"]
@@ -266,7 +269,11 @@ def main():
     print(f"Training for {total_steps} steps...")
 
     use_scaler = dtype == torch.float16 and device_type == "cuda"
-    scaler = torch.amp.GradScaler("cuda", enabled=use_scaler)
+    scaler = (
+        torch.amp.GradScaler("cuda", enabled=use_scaler)
+        if device_type == "cuda"
+        else None
+    )
     autocast_ctx = (
         torch.amp.autocast(device_type="cuda", dtype=dtype)
         if device_type == "cuda"
@@ -276,12 +283,12 @@ def main():
     best_val_loss = float("inf")
     best_edit_dist = float("inf")
     step = 0
-    t0 = time.time()
 
     model.train()
 
     for epoch in range(config["max_epochs"]):
         for batch in train_loader:
+            t0 = time.time()
             lr = get_lr(
                 step, min_lr, config["max_lr"], config["warmup_steps"], total_steps
             )
@@ -298,7 +305,7 @@ def main():
                 )
                 loss = outputs.loss
 
-            if use_scaler:
+            if use_scaler and scaler is not None:
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
                 grad_norm = torch.nn.utils.clip_grad_norm_(
@@ -317,7 +324,6 @@ def main():
             if device_type == "cuda":
                 torch.cuda.synchronize()
             dt = time.time() - t0
-            t0 = time.time()
             tokens_per_sec = input_ids.numel() / dt
 
             if step % config["log_interval"] == 0:
@@ -332,6 +338,7 @@ def main():
                             "train/lr": lr,
                             "train/grad_norm": grad_norm.item(),
                             "train/tokens_per_sec": tokens_per_sec,
+                            "epoch": epoch,
                             "step": step,
                         }
                     )
@@ -367,6 +374,18 @@ def main():
                     )
 
             step += 1
+
+    print("Running final evaluation...")
+    val_loss, val_edit_dist = evaluate(
+        model, val_loader, tokenizer, device, device_type, dtype, pad_id
+    )
+    print(
+        f"Final Val Loss: {val_loss:.4f} | Final Val Edit Distance: {val_edit_dist:.2f}"
+    )
+    if config["use_wandb"]:
+        wandb.log(
+            {"val/loss": val_loss, "val/edit_distance": val_edit_dist, "step": step}
+        )
 
     save_checkpoint(model, os.path.join(config["out_dir"], "last.pt"))
     print("Training complete.")

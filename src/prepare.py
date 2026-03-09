@@ -4,7 +4,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from datasets import load_dataset
 
-MODEL_ID = "google/gemma-3-270m"
+MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B"
 DATASET_ID = "westenfelder/NL2SH-ALFA"
 OUTPUT_DIR = "data"
 
@@ -27,13 +27,21 @@ def prepare():
         all_ids = []
         metadata = []
 
-        BOS = tokenizer.bos_token
         EOS = tokenizer.eos_token
 
-        # the dataset using train for both
         for row in tqdm(curr_ds["train"], desc=f"Tokenizing {split_name}"):
-            # concatenate the prompt and completion
-            prompt = f"{BOS}instruction: {row['nl'].lower().strip()}\ncommand: "
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else.",
+                },
+                {"role": "user", "content": row["nl"].lower().strip()},
+            ]
+            prompt = tokenizer.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
             completion = f"{row['bash'].strip()}{EOS}"
 
             # we do not need special token as we have added it manually
