@@ -1,60 +1,92 @@
 import os
+import random
 import numpy as np
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from datasets import load_dataset
 
 MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B"
-DATASET_ID = "westenfelder/NL2SH-ALFA"
-OUTPUT_DIR = "data"
+RAW_NL_PATH = "data/raw/all.nl"
+RAW_CM_PATH = "data/raw/all.cm"
+OUTPUT_DIR = "data/preprocessed"
+
+TRAIN_RATIO = 0.90
+VAL_RATIO = 0.05
+TEST_RATIO = 0.05
+
+SEED = 42
 
 
 def prepare():
     print(f"Loading tokenizer for {MODEL_ID}...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-
     print(f"Vocab size: {tokenizer.vocab_size}. Using uint32 for storage.")
+
+    print(f"\nReading raw data from:\n  {RAW_NL_PATH}\n  {RAW_CM_PATH}")
+    with open(RAW_NL_PATH, "r", encoding="utf-8") as f:
+        nl_lines = [line.rstrip("\n") for line in f]
+    with open(RAW_CM_PATH, "r", encoding="utf-8") as f:
+        cm_lines = [line.rstrip("\n") for line in f]
+
+    assert len(nl_lines) == len(cm_lines), (
+        f"Line count mismatch: {len(nl_lines)} NL vs {len(cm_lines)} CM"
+    )
+    total = len(nl_lines)
+    print(f"Loaded {total} examples.")
+
+    indices = list(range(total))
+    random.seed(SEED)
+    random.shuffle(indices)
+
+    n_train = int(total * TRAIN_RATIO)
+    n_val = int(total * VAL_RATIO)
+
+    splits = {
+        "train": indices[:n_train],
+        "val": indices[n_train : n_train + n_val],
+        "test": indices[n_train + n_val :],
+    }
+    for name, idxs in splits.items():
+        print(f"  {name}: {len(idxs)} examples")
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    splits = ["train", "test"]
-    for split_name in splits:
+    SYSTEM_PROMPT = "You are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else."
+
+    for split_name, split_indices in splits.items():
         print(f"\nProcessing split: {split_name}")
-        curr_ds = load_dataset(DATASET_ID, split_name)
-        print(f"Loaded {len(curr_ds)} examples from {split_name} split.")
-        print(curr_ds)
 
-        all_ids = []
-        metadata = []
+        all_ids: list[int] = []
+        metadata: list[list[int]] = []
 
-        EOS = tokenizer.eos_token
+        for idx in tqdm(split_indices, desc=f"Tokenizing {split_name}"):
+            nl = nl_lines[idx].strip()
+            cm = cm_lines[idx].strip()
 
-        for row in tqdm(curr_ds["train"], desc=f"Tokenizing {split_name}"):
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else.",
-                },
-                {"role": "user", "content": row["nl"].lower().strip()},
+            # for Qwen2.5 the assistant turn ends with <|im_end|>
+            prompt_messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": nl},
             ]
-            prompt = tokenizer.apply_chat_template(
-                messages,
+            full_messages = prompt_messages + [{"role": "assistant", "content": cm}]
+
+            prompt_text = tokenizer.apply_chat_template(
+                prompt_messages,
                 add_generation_prompt=True,
                 tokenize=False,
             )
-            completion = f"{row['bash'].strip()}{EOS}"
+            full_text = tokenizer.apply_chat_template(
+                full_messages,
+                add_generation_prompt=False,
+                tokenize=False,
+            )
 
-            # we do not need special token as we have added it manually
-            p_ids = tokenizer.encode(prompt, add_special_tokens=False)
-            c_ids = tokenizer.encode(completion, add_special_tokens=False)
+            p_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+            full_ids_enc = tokenizer.encode(full_text, add_special_tokens=False)
+            c_ids = full_ids_enc[len(p_ids) :]
 
             full_ids = p_ids + c_ids
 
-            # just keep it packed, we can unpack it using metadata later
             all_ids.extend(full_ids)
-
-            # Store metadata: [total_length, prompt_length]
-            # specific for SF where we mask the prompt loss
             metadata.append([len(full_ids), len(p_ids)])
 
         ids_arr = np.array(all_ids, dtype=np.uint32)
@@ -66,7 +98,7 @@ def prepare():
         meta_arr.tofile(meta_path)
 
         print(f"Saved {len(all_ids)} tokens to {bin_path}")
-        print(f"Saved {len(metadata)} rows of metadata to {meta_path}\n")
+        print(f"Saved {len(metadata)} rows of metadata to {meta_path}")
 
 
 if __name__ == "__main__":

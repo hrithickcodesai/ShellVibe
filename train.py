@@ -19,7 +19,7 @@ config = {
     "wandb_project": "qwen-coder-bash-sft",
     "use_wandb": True,
     "out_dir": "checkpoints",
-    "data_dir": "data",
+    "data_dir": "data/preprocessed",
     "batch_size": 2,
     "max_lr": 2e-5,
     "min_lr_ratio": 0.10,
@@ -28,6 +28,7 @@ config = {
     "log_interval": 50,
     "eval_interval": 500,
     "grad_clip": 1.0,
+    "grad_accum_steps": 8,
     "weight_decay": 0.01,
     "seed": 1337,
     "wandb_mode": "offline",  # set to "online" to enable wandb logging,
@@ -203,6 +204,7 @@ def main():
                 "max_epochs": config["max_epochs"],
                 "weight_decay": config["weight_decay"],
                 "grad_clip": config["grad_clip"],
+                "grad_accum_steps": config["grad_accum_steps"],
                 "eval_interval": config["eval_interval"],
                 "dtype": str(dtype),
             },
@@ -232,8 +234,8 @@ def main():
         meta_path=os.path.join(config["data_dir"], "train_meta.bin"),
     )
     test_dataset = SFTDataset(
-        data_path=os.path.join(config["data_dir"], "test.bin"),
-        meta_path=os.path.join(config["data_dir"], "test_meta.bin"),
+        data_path=os.path.join(config["data_dir"], "val.bin"),
+        meta_path=os.path.join(config["data_dir"], "val_meta.bin"),
     )
 
     pad_id = (
@@ -265,8 +267,11 @@ def main():
 
     min_lr = config["max_lr"] * config["min_lr_ratio"]
     num_batches = len(train_loader)
-    total_steps = num_batches * config["max_epochs"]
-    print(f"Training for {total_steps} steps...")
+    steps_per_epoch = math.ceil(num_batches / config["grad_accum_steps"])
+    total_steps = steps_per_epoch * config["max_epochs"]
+    print(
+        f"Training for {total_steps} optimizer steps ({config['grad_accum_steps']} grad accum steps, effective batch = {config['batch_size'] * config['grad_accum_steps']})..."
+    )
 
     use_scaler = dtype == torch.float16 and device_type == "cuda"
     scaler = (
@@ -282,31 +287,54 @@ def main():
 
     best_val_loss = float("inf")
     best_edit_dist = float("inf")
-    step = 0
+    step = 0  # counts optimizer steps
+    accum_loss = 0.0
+    window_tokens = 0
+    window_t0 = time.time()
 
     model.train()
 
     for epoch in range(config["max_epochs"]):
-        for batch in train_loader:
-            t0 = time.time()
+        for batch_idx, batch in enumerate(train_loader):
+            input_ids = batch["input_ids"].to(device)
+            labels = batch["labels"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+
+            # actual window size for the last (possibly partial) window each epoch
+            window_start = (batch_idx // config["grad_accum_steps"]) * config[
+                "grad_accum_steps"
+            ]
+            actual_accum = min(config["grad_accum_steps"], num_batches - window_start)
+
+            with autocast_ctx:
+                outputs = model(
+                    input_ids=input_ids, attention_mask=attention_mask, labels=labels
+                )
+                # scale loss so gradients are averaged over the actual window size
+                loss = outputs.loss / actual_accum
+
+            if use_scaler and scaler is not None:
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
+
+            accum_loss += loss.item()
+            window_tokens += input_ids.numel()
+
+            is_last_micro = (batch_idx + 1) % config[
+                "grad_accum_steps"
+            ] == 0 or batch_idx == num_batches - 1
+            if not is_last_micro:
+                continue
+
+            # ── optimizer step ─────────────────────────────────────────────────
             lr = get_lr(
                 step, min_lr, config["max_lr"], config["warmup_steps"], total_steps
             )
             for param_group in optimizer.param_groups:
                 param_group["lr"] = lr
 
-            input_ids = batch["input_ids"].to(device)
-            labels = batch["labels"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-
-            with autocast_ctx:
-                outputs = model(
-                    input_ids=input_ids, attention_mask=attention_mask, labels=labels
-                )
-                loss = outputs.loss
-
             if use_scaler and scaler is not None:
-                scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     model.parameters(), config["grad_clip"]
@@ -314,7 +342,6 @@ def main():
                 scaler.step(optimizer)
                 scaler.update()
             else:
-                loss.backward()
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     model.parameters(), config["grad_clip"]
                 )
@@ -323,18 +350,19 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             if device_type == "cuda":
                 torch.cuda.synchronize()
-            dt = time.time() - t0
-            tokens_per_sec = input_ids.numel() / dt
+
+            dt = time.time() - window_t0
+            tokens_per_sec = window_tokens / dt
 
             if step % config["log_interval"] == 0:
                 print(
-                    f"step {step:5d} | loss: {loss.item():.4f} | lr: {lr:.2e} | "
+                    f"step {step:5d} | loss: {accum_loss:.4f} | lr: {lr:.2e} | "
                     f"norm: {grad_norm:.4f} | dt: {dt * 1000:.2f}ms | tok/s: {tokens_per_sec:.0f}"
                 )
                 if config["use_wandb"]:
                     wandb.log(
                         {
-                            "train/loss": loss.item(),
+                            "train/loss": accum_loss,
                             "train/lr": lr,
                             "train/grad_norm": grad_norm.item(),
                             "train/tokens_per_sec": tokens_per_sec,
@@ -373,6 +401,9 @@ def main():
                         model, os.path.join(config["out_dir"], "best_edit_distance.pt")
                     )
 
+            accum_loss = 0.0
+            window_tokens = 0
+            window_t0 = time.time()
             step += 1
 
     print("Running final evaluation...")
