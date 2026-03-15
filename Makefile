@@ -1,5 +1,5 @@
 PYTHON_FILES = .
-CHECKPOINT ?= checkpoints/best_edit_distance.pt
+CHECKPOINT ?= checkpoints/best_loss.pt
 
 .PHONY: help clean format prepare train inference inference-interactive
 

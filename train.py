@@ -31,7 +31,7 @@ config = {
     "grad_accum_steps": 8,
     "weight_decay": 0.01,
     "seed": 1337,
-    "wandb_mode": "offline",  # set to "online" to enable wandb logging,
+    "wandb_mode": "online",  # set to "online" to enable wandb logging,
 }
 
 
@@ -128,12 +128,14 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
         generation_inputs = prompt_ids_reversed.flip(1).to(device)
         generation_mask = (generation_inputs != pad_id).long()
 
+        im_end_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
         with autocast_ctx:
             generated_ids = model.generate(
                 input_ids=generation_inputs,
                 attention_mask=generation_mask,
                 max_new_tokens=128,
                 do_sample=False,
+                eos_token_id=im_end_id,
                 pad_token_id=pad_id,
                 use_cache=True,
             )
@@ -233,9 +235,9 @@ def main():
         data_path=os.path.join(config["data_dir"], "train.bin"),
         meta_path=os.path.join(config["data_dir"], "train_meta.bin"),
     )
-    test_dataset = SFTDataset(
-        data_path=os.path.join(config["data_dir"], "val.bin"),
-        meta_path=os.path.join(config["data_dir"], "val_meta.bin"),
+    val_dataset = SFTDataset(
+        data_path=os.path.join(config["data_dir"], "test.bin"),
+        meta_path=os.path.join(config["data_dir"], "test_meta.bin"),
     )
 
     pad_id = (
@@ -256,7 +258,7 @@ def main():
         pin_memory=device_type == "cuda",
     )
     val_loader = DataLoader(
-        test_dataset,
+        val_dataset,
         batch_size=config["batch_size"],
         shuffle=False,
         collate_fn=collator,
@@ -310,7 +312,6 @@ def main():
                 outputs = model(
                     input_ids=input_ids, attention_mask=attention_mask, labels=labels
                 )
-                # scale loss so gradients are averaged over the actual window size
                 loss = outputs.loss / actual_accum
 
             if use_scaler and scaler is not None:
@@ -327,7 +328,6 @@ def main():
             if not is_last_micro:
                 continue
 
-            # ── optimizer step ─────────────────────────────────────────────────
             lr = get_lr(
                 step, min_lr, config["max_lr"], config["warmup_steps"], total_steps
             )

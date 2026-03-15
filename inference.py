@@ -36,7 +36,7 @@ def predict(
 ) -> str:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": nl_instruction.lower().strip()},
+        {"role": "user", "content": nl_instruction.strip()},
     ]
 
     inputs = tokenizer.apply_chat_template(
@@ -47,11 +47,14 @@ def predict(
         return_tensors="pt",
     ).to(device)
 
+    im_end_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
+
     with torch.no_grad():
         output_ids = model.generate(
             **inputs,
             max_new_tokens=max_new_tokens,
             do_sample=False,
+            eos_token_id=im_end_id,
             pad_token_id=tokenizer.eos_token_id,
             use_cache=True,
         )

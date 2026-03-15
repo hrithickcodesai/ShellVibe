@@ -9,9 +9,8 @@ RAW_NL_PATH = "data/raw/all.nl"
 RAW_CM_PATH = "data/raw/all.cm"
 OUTPUT_DIR = "data/preprocessed"
 
-TRAIN_RATIO = 0.90
-VAL_RATIO = 0.05
-TEST_RATIO = 0.05
+TRAIN_RATIO = 0.80
+TEST_RATIO = 0.20
 
 SEED = 42
 
@@ -38,12 +37,10 @@ def prepare():
     random.shuffle(indices)
 
     n_train = int(total * TRAIN_RATIO)
-    n_val = int(total * VAL_RATIO)
 
     splits = {
         "train": indices[:n_train],
-        "val": indices[n_train : n_train + n_val],
-        "test": indices[n_train + n_val :],
+        "test": indices[n_train:],
     }
     for name, idxs in splits.items():
         print(f"  {name}: {len(idxs)} examples")
