@@ -1,6 +1,6 @@
-PYTHON = /Users/hrithicksen/Documents/projects/ShellVibe/.venv/bin/python
+PYTHON ?= uv run python
 PYTHON_FILES = src
-CHECKPOINT ?= checkpoints/best_loss.pt
+CHECKPOINT ?= checkpoints/best_edit_distance.pt
 
 .PHONY: help clean format prepare train inference inference-interactive preprocess-tldr generate-data combine-data split-data
 
