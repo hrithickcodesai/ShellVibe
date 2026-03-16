@@ -1,12 +1,13 @@
 import os
 import time
 import math
+import random
 import torch
 import wandb
 import Levenshtein
 from contextlib import nullcontext
 from torch.utils.data import DataLoader
-from src.dataset import SFTDataset, SFTCollator
+from src.training.dataset import SFTDataset, SFTCollator
 from torch.nn.utils.rnn import pad_sequence
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from dotenv import load_dotenv
@@ -20,12 +21,12 @@ config = {
     "use_wandb": True,
     "out_dir": "checkpoints",
     "data_dir": "data/preprocessed",
-    "batch_size": 2,
+    "batch_size": 8,
     "max_lr": 2e-5,
     "min_lr_ratio": 0.10,
     "warmup_steps": 500,
-    "max_epochs": 3,
-    "log_interval": 50,
+    "max_epochs": 20,
+    "log_interval": 1,
     "eval_interval": 500,
     "grad_clip": 1.0,
     "grad_accum_steps": 8,
@@ -148,17 +149,14 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
             dist = Levenshtein.distance(generated_str.strip(), target_str.strip())
             total_edit_dist += dist
 
-            if len(examples_to_print) < 3:
-                prompt_str = tokenizer.decode(
-                    prompt_only_ids[i], skip_special_tokens=True
-                )
-                examples_to_print.append(
-                    {
-                        "prompt": prompt_str,
-                        "target": target_str,
-                        "generated": generated_str,
-                    }
-                )
+            prompt_str = tokenizer.decode(prompt_only_ids[i], skip_special_tokens=True)
+            examples_to_print.append(
+                {
+                    "prompt": prompt_str,
+                    "target": target_str,
+                    "generated": generated_str,
+                }
+            )
 
         num_gen_samples += input_ids.size(0)
 
@@ -172,7 +170,8 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
     print(f"EVALUATION REPORT (Loss: {avg_loss:.4f} | Edit Dist: {avg_edit_dist:.2f})")
     print("=" * 60)
 
-    for i, ex in enumerate(examples_to_print):
+    sampled = random.sample(examples_to_print, min(10, len(examples_to_print)))
+    for i, ex in enumerate(sampled):
         print(f"\n--- Example {i + 1} ---")
         p_text = ex["prompt"].replace("\n", " ")
         print(f"INPUT:  {p_text[:80]}...")

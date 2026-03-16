@@ -221,3 +221,6 @@ __marimo__/
 wandb
 
 checkpoints/*
+
+data/raw/osx/*
+data/raw/common/*

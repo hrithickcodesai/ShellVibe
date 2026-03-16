@@ -1,18 +1,18 @@
 import os
-import random
+import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
 MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B"
-RAW_NL_PATH = "data/raw/all.nl"
-RAW_CM_PATH = "data/raw/all.cm"
 OUTPUT_DIR = "data/preprocessed"
 
-TRAIN_RATIO = 0.80
-TEST_RATIO = 0.20
+SPLITS = {
+    "train": "data/preprocessed/train.csv",
+    "test": "data/preprocessed/test.csv",
+}
 
-SEED = 42
+SYSTEM_PROMPT = "You are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else."
 
 
 def prepare():
@@ -20,46 +20,22 @@ def prepare():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
     print(f"Vocab size: {tokenizer.vocab_size}. Using uint32 for storage.")
 
-    print(f"\nReading raw data from:\n  {RAW_NL_PATH}\n  {RAW_CM_PATH}")
-    with open(RAW_NL_PATH, "r", encoding="utf-8") as f:
-        nl_lines = [line.rstrip("\n") for line in f]
-    with open(RAW_CM_PATH, "r", encoding="utf-8") as f:
-        cm_lines = [line.rstrip("\n") for line in f]
-
-    assert len(nl_lines) == len(cm_lines), (
-        f"Line count mismatch: {len(nl_lines)} NL vs {len(cm_lines)} CM"
-    )
-    total = len(nl_lines)
-    print(f"Loaded {total} examples.")
-
-    indices = list(range(total))
-    random.seed(SEED)
-    random.shuffle(indices)
-
-    n_train = int(total * TRAIN_RATIO)
-
-    splits = {
-        "train": indices[:n_train],
-        "test": indices[n_train:],
-    }
-    for name, idxs in splits.items():
-        print(f"  {name}: {len(idxs)} examples")
-
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    SYSTEM_PROMPT = "You are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else."
-
-    for split_name, split_indices in splits.items():
-        print(f"\nProcessing split: {split_name}")
+    for split_name, csv_path in SPLITS.items():
+        print(f"\nReading {split_name} data from: {csv_path}")
+        df = pd.read_csv(csv_path)
+        print(f"  Loaded {len(df)} examples.")
 
         all_ids: list[int] = []
         metadata: list[list[int]] = []
 
-        for idx in tqdm(split_indices, desc=f"Tokenizing {split_name}"):
-            nl = nl_lines[idx].strip()
-            cm = cm_lines[idx].strip()
+        for _, row in tqdm(
+            df.iterrows(), total=len(df), desc=f"Tokenizing {split_name}"
+        ):
+            nl = str(row["input_nl"]).strip()
+            cm = str(row["output_command"]).strip()
 
-            # for Qwen2.5 the assistant turn ends with <|im_end|>
             prompt_messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": nl},

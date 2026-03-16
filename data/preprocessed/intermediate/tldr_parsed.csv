@@ -1,0 +1,631 @@
+Name,English,Command
+head,Output the first 10 lines of a file,head path/to/file
+head,Output the first 5 lines of multiple files,head [-5|--lines 5] path/to/file1 path/to/file2 ...
+head,Output the first `n` lines of a file,head [-n|--lines] n path/to/file
+head,Output the first `n` bytes of a file,head [-c|--bytes] n path/to/file
+system_profiler,"Display a report with specific details level (mini [no personal information], basic, or full)",system_profiler -detailLevel level
+system_profiler,Display a full system profiler report which can be opened by `System Profiler.app`,system_profiler -xml > MyReport.spx
+system_profiler,"Display a hardware overview (Model, CPU, Memory, Serial, etc) and software data (System, Kernel, Name, Uptime, etc)",system_profiler SPHardwareDataType SPSoftwareDataType
+system_profiler,Print the system serial number,"system_profiler SPHardwareDataType|grep ""Serial Number (system)"" | awk '{ print $4 }'"
+pmset,Display the current power management settings,pmset -g
+pmset,Display the current power source and battery levels,pmset -g batt
+pmset,Put display to sleep immediately,pmset displaysleepnow
+pmset,Set display to never sleep when on charger power,sudo pmset -c displaysleep 0
+pmset,Set display to sleep after 15 minutes when on battery power,sudo pmset -b displaysleep 15
+pmset,Schedule computer to automatically wake up every weekday at 9 AM,sudo pmset repeat wake MTWRF 09:00:00
+pmset,Restore to system defaults,sudo pmset -a displaysleep 10 disksleep 10 sleep 30 womp 1
+ps,List all running processes,ps aux
+ps,List all running processes including the full command string,ps auxww
+ps,Search for a process that matches a string,ps aux | grep string
+ps,Get the parent PID of a process,ps -o ppid= -p pid
+ps,Sort processes by memory usage,ps -m
+ps,Sort processes by CPU usage,ps -r
+open,Open a file with the associated application,open file.ext
+open,Run a graphical macOS [a]pplication,"open -a ""Application"""
+open,Run a graphical macOS app based on the [b]undle identifier (refer to `osascript` for an easy way to get this),open -b com.domain.application
+open,Open the current directory in Finder,open .
+open,[R]eveal a file in Finder,open -R path/to/file
+open,Open all the files of a given extension in the current directory with the associated application,open *.ext
+open,Open a [n]ew instance of an application specified via [b]undle identifier,open -n -b com.domain.application
+stat,"Show file properties such as size, permissions, creation date, and access date among others",stat path/to/file
+stat,Same as above but verbose (more similar to Linux's `stat`),stat -x path/to/file
+stat,Show only octal file permissions,stat -f %Mp%Lp path/to/file
+stat,Show owner and group of the file,"stat -f ""%Su %Sg"" path/to/file"
+stat,Show the size of the file in bytes,"stat -f ""%z %N"" path/to/file"
+defaults,Read system defaults for an application option,"defaults read ""application"" ""option"""
+defaults,Read default values for an application option,"defaults read -app ""application"" ""option"""
+defaults,"Search for a keyword in domain names, keys, and values","defaults find ""keyword"""
+defaults,Write the default value of an application option,"defaults write ""application"" ""option"" -type value"
+defaults,Speed up Mission Control animations,defaults write com.apple.Dock expose-animation-duration -float 0.1
+defaults,Delete all defaults of an application,"defaults delete ""application"""
+textutil,Display information about `file.rtf`,textutil -info path/to/file.rtf
+textutil,Convert `file.rtf` into `file.html`,textutil -convert html path/to/file.rtf
+textutil,Convert rich text to normal text,textutil path/to/file.rtf -convert txt
+textutil,"Convert `file.txt` into `file.rtf`, using Times 10 for the font",textutil -convert rtf -font Times -fontsize 10 path/to/file.txt
+textutil,"Load all RTF files in the current directory, concatenates their contents, and writes the result out as `index.html` with the HTML title set to ""Several Files""","textutil -cat html -title ""Several Files"" -output path/to/index.html *.rtf"
+mdfind,Find a file by its name,mdfind -name file
+mdfind,Find a file by its content,"mdfind ""query"""
+mdfind,"Find a file containing a string, in a given directory","mdfind -onlyin directory ""query"""
+diskutil,"List all currently available disks, partitions, and mounted volumes",diskutil list
+diskutil,Repair the filesystem data structures of a volume,diskutil repairVolume /dev/disk
+diskutil,Unmount a volume,diskutil unmountDisk /dev/disk
+diskutil,Eject a CD/DVD (unmount first),diskutil eject /dev/diskX
+netstat,Display the PID and program name listening on a specific protocol,netstat -p protocol
+netstat,Print the routing table and do not resolve IP addresses to hostnames,netstat -nr
+netstat,Print the routing table of IPv4 addresses,netstat -nr -f inet
+uptime,"Print current time, uptime, number of logged-in users, and other information",uptime
+date,Display the current date using the default locale's format,date +%c
+date,Display the current date in UTC and ISO 8601 format,date -u +%Y-%m-%dT%H:%M:%SZ
+date,Display the current date as a Unix timestamp (seconds since the Unix epoch),date +%s
+date,Display a specific date (represented as a Unix timestamp) using the default format,date -r 1473305798
+date,Display a date relative to the current date using the default format,date -v +1d -v -20m
+ping,Ping the specified host,"ping ""hostname"""
+ping,Ping a host a specific number of times,"ping -c count ""host"""
+ping,"Ping a host, specifying the interval in seconds between requests (default is 1 second)","ping -i seconds ""host"""
+ping,Ping a host without trying to lookup symbolic names for addresses,"ping -n ""host"""
+ping,Ping a host and ring the bell when a packet is received (if your terminal supports it),"ping -a ""host"""
+ping,Ping a host and prints the time a packet was received (this option is an Apple addition),"ping --apple-time ""host"""
+launchctl,Activate a user-specific agent to be loaded into `launchd` whenever the user logs in,launchctl load ~/Library/LaunchAgents/my_script.plist
+launchctl,Activate an agent which requires root privileges to run and/or should be loaded whenever any user logs in (note the absence of `~` in the path),sudo launchctl load /Library/LaunchAgents/root_script.plist
+launchctl,Activate a system-wide daemon to be loaded whenever the system boots up (even if no user logs in),sudo launchctl load /Library/LaunchDaemons/system_daemon.plist
+launchctl,"Show all loaded agents/daemons, with the PID if the process they specify is currently running, and the exit code returned the last time they ran",launchctl list
+launchctl,"Unload a currently loaded agent, e.g. to make changes (Note: The plist file is automatically loaded into `launchd` after a reboot and/or logging in)",launchctl unload ~/Library/LaunchAgents/my_script.plist
+launchctl,"Manually run a known (loaded) agent/daemon, even if it is not the right time (Note: This command uses the agent's label, rather than the filename)",launchctl start script_file
+launchctl,"Manually kill the process associated with a known agent/daemon, if it is running",launchctl stop script_file
+qlmanage,Display QuickLook for one or multiple files,qlmanage -p path/to/file1 path/to/file2 ...
+qlmanage,Compute 300px wide PNG thumbnails of all JPEGs in the current directory and put them in a directory,qlmanage *.jpg -t -s 300 path/to/directory
+qlmanage,Reset QuickLook,qlmanage -r
+caffeinate,Prevent the display from sleeping,caffeinate -d
+caffeinate,Prevent from sleeping for 1 hour (3600 seconds),caffeinate -u -t 3600
+caffeinate,"Fork a process, exec ""make"" in it, and prevent sleep as long as that process is running",caffeinate -i make
+caffeinate,Prevent from sleeping until a process with the specified PID completes,caffeinate -w pid
+caffeinate,Prevent disk from sleeping (use `<Ctrl c>` to exit),caffeinate -m
+pbcopy,Place the contents of a specific file in the clipboard,pbcopy < path/to/file
+pbcopy,Place the results of a specific command in the clipboard,"find . -type t -name ""*.png"" | pbcopy"
+uuidgen,Generate a UUID string,uuidgen
+softwareupdate,List all available updates,softwareupdate --list
+softwareupdate,Download and install all updates,softwareupdate --install --all
+softwareupdate,Download and install all [r]ecommended updates,softwareupdate --install --recommended
+softwareupdate,Download and install a specific app,softwareupdate --install update_name
+df,Display all filesystems and their disk usage (using 512-byte units),df
+df,Use [h]uman-readable units (based on powers of 1024) and display a grand total,df -h -c
+df,Use [H]uman-readable units (based on powers of 1000),df [-H|--si]
+df,Display the filesystem containing the specified file or directory,df path/to/file_or_directory
+df,"Include statistics on the number of free and used [i]nodes, including the filesystem t[Y]pes",df -iY
+df,Use [k]ibibyte (1024 byte) units when showing size figures,df -k
+df,Display information in a [P]ortable way,df -P
+sw_vers,"Print all available information (OS name, version number, and build)",sw_vers
+sw_vers,Print only the version number of the operating system,sw_vers -productVersion
+sw_vers,Print only the build identifier,sw_vers -buildVersion
+wc,Count lines in file,wc -l path/to/file
+wc,Count words in file,wc -w path/to/file
+wc,Count characters (bytes) in file,wc -c path/to/file
+wc,Count characters in file (taking multi-byte character sets into account),wc -m path/to/file
+wc,"Use `stdin` to count lines, words, and characters (bytes) in that order",find . | wc
+pbpaste,Write the contents of the clipboard to a file,pbpaste > path/to/file
+pbpaste,Use the contents of the clipboard as input to a command,pbpaste | grep search_string
+tail,Show last 8 lines in file,tail -n 8 path/to/file
+tail,Print a file from a specific line number,tail -n +8 path/to/file
+tail,Print a specific count of bytes from the end of a given file,tail -c 8 path/to/file
+tail,Print the last lines of a given file and keep reading it until `<Ctrl c>`,tail -f path/to/file
+tail,"Keep reading file until `<Ctrl c>`, even if the file is inaccessible",tail -F path/to/file
+tail,Show last `count` lines in a file and refresh every `seconds` seconds,tail -n count -s seconds -f path/to/file
+arch,Display the system's architecture,arch
+arch,Run a command using x86_64,"arch -x86_64 ""command"""
+arch,Run a command using arm,"arch -arm64 ""command"""
+screencapture,Take a screenshot and save it to a file,screencapture path/to/file.png
+screencapture,Take a screenshot including the mouse cursor,screencapture -C path/to/file.png
+screencapture,"Take a screenshot and open it in Preview, instead of saving",screencapture -P
+screencapture,Take a screenshot of a selected rectangular area,screencapture -i path/to/file.png
+screencapture,Take a screenshot after a delay,screencapture -T seconds path/to/file.png
+screencapture,Make a screen recording and save it to a file,screencapture -v path/to/file.mp4
+du,"List the sizes of a directory and any subdirectories, in the given unit (KiB/MiB/GiB)",du -k|m|g path/to/directory
+du,"List the sizes of a directory and any subdirectories, in human-readable form (i.e. auto-selecting the appropriate unit for each size)",du -h path/to/directory
+du,"Show the size of a single directory, in human-readable units",du -sh path/to/directory
+du,List the human-readable sizes of a directory and of all the files and directories within it,du -ah path/to/directory
+du,"List the human-readable sizes of a directory and any subdirectories, up to `n` levels deep",du -h -d n path/to/directory
+du,"List the human-readable size of all `.jpg` files in subdirectories of the current directory, and show a cumulative total at the end",du -ch */*.jpg
+networksetup,"List available network service providers (Ethernet, Wi-Fi, Bluetooth, etc)",networksetup -listallnetworkservices
+networksetup,Show network settings for a particular networking device,"networksetup -getinfo ""Wi-Fi"""
+networksetup,Get currently connected Wi-Fi network name (Wi-Fi device usually en0 or en1),networksetup -getairportnetwork en0
+networksetup,Connect to a particular Wi-Fi network,networksetup -setairportnetwork en0 Airport Network SSID password
+top,"Start `top`, all options are available in the interface",top
+top,Start `top` sorting processes by internal memory size (default order process ID),top -o mem
+top,"Start `top` sorting processes first by CPU, then by running time",top -o cpu -O time
+top,Start `top` displaying only processes owned by given user,top -user user_name
+top,Display help about interactive commands,<?>
+cat,Print the contents of a file to `stdout`,cat path/to/file
+cat,Concatenate several files into an output file,cat path/to/file1 path/to/file2 ... > path/to/output_file
+cat,Append several files to an output file,cat path/to/file1 path/to/file2 ... >> path/to/output_file
+cat,Copy the contents of a file into an output file without buffering,cat -u /dev/tty12 > /dev/tty13
+cat,Write `stdin` to a file,cat - > path/to/file
+cat,Number all output lines,cat -n path/to/file
+cat,Display non-printable and whitespace characters (with `M-` prefix if non-ASCII),cat -v -t -e path/to/file
+sed,Replace all `apple` (basic `regex`) occurrences with `mango` (basic `regex`) in all input lines and print the result to `stdout`,command | sed 's/apple/mango/g'
+sed,Execute a specific script [f]ile and print the result to `stdout`,command | sed -f path/to/script_file.sed
+sed,Replace all `apple` (extended `regex`) occurrences with `APPLE` (extended `regex`) in all input lines and print the result to `stdout`,command | sed -E 's/(apple)/\U\1/g'
+sed,Print just a first line to `stdout`,command | sed -n '1p'
+sed,Replace all `apple` (basic `regex`) occurrences with `mango` (basic `regex`) in a `file` and save a backup of the original to `file.bak`,sed -i bak 's/apple/mango/g' path/to/file
+cut,Print the fifth [c]haracter on each line,command | cut -c 5
+cut,Print the fifth to tenth [c]haracter of each line of the specified file,cut -c 5-10 path/to/file
+cut,Split each line in a file by a delimiter into fields and print [f]ields two and six (default delimiter is `TAB`),"cut -f 2,6 path/to/file"
+cut,Split each line by the specified [d]elimiter and print all from the second [f]ield onward,"command | cut -d ""delimiter"" -f 2-"
+cut,Use space as a [d]elimiter and print only the first 3 [f]ields,"command | cut -d "" "" -f -3"
+say,Say a phrase aloud,"say ""I like to ride my bike."""
+say,Read a file aloud,say --input-file filename.txt
+say,Say a phrase with a custom voice and speech rate,"say --voice voice --rate words_per_minute ""I'm sorry Dave, I can't let you do that."""
+say,List the available voices (different voices speak in different languages),"say --voice ""?"""
+say,Say something in Polish,"say --voice Zosia ""Litwo, ojczyzno moja!"""
+say,Create an audio file of the spoken text,"say --output-file filename.aiff ""Here's to the Crazy Ones."""
+head,Output the first few lines of a file,head -n count path/to/file
+pkill,Kill all processes which match,"pkill ""process_name"""
+pkill,Kill all processes which match their full command instead of just the process name,"pkill [-f|--full] ""command_name"""
+pkill,Force kill matching processes (can't be blocked),"pkill -9 ""process_name"""
+pkill,Send SIGUSR1 signal to processes which match,"pkill -USR1 ""process_name"""
+pkill,Kill the main `firefox` process to close the browser,"pkill [-o|--oldest] ""firefox"""
+ps,List all running processes,ps aux
+ps,List all running processes including the full command string,ps auxww
+ps,Search for a process that matches a string (the brackets will prevent `grep` from matching itself),ps aux | grep [s]tring
+ps,List all processes of the current user in extra full format,ps [-u|--user] $(id [-u|--user]) -F
+ps,List all processes of the current user as a tree,ps [-u|--user] $(id [-u|--user]) f
+ps,Get the parent PID of a process,ps [-o|--format] ppid= [-p|--pid] pid
+ps,Sort processes by memory consumption,ps --sort size
+open,View documentation for the command available in macOS,tldr open [-p|--platform] osx
+open,View documentation for the command available through fish,tldr open.fish
+stat,"Display properties about a specific file such as size, permissions, creation date, and access date among others",stat path/to/file
+stat,"Display properties about a specific file, only showing the raw result data without labels",stat [-t|--terse] path/to/file
+stat,Display information about the filesystem where a specific file is located,stat [-f|--file-system] path/to/file
+stat,Show only octal file permissions,"stat [-c|--format] ""%a %n"" path/to/file"
+stat,Show the owner and group of a specific file,"stat [-c|--format] ""%U %G"" path/to/file"
+stat,Show the size of a specific file in bytes,"stat [-c|--format] ""%s %n"" path/to/file"
+tr,"Replace all occurrences of a character in a file, and print the result",tr < path/to/file find_character replace_character
+tr,Replace all occurrences of a character from another command's output,echo text | tr find_character replace_character
+tr,Map each character of the first set to the corresponding character of the second set,tr < path/to/file 'abcd' 'jkmn'
+tr,Delete all occurrences of the specified set of characters from the input,tr < path/to/file [-d|--delete] 'input_characters'
+tr,Compress a series of identical characters to a single character,tr < path/to/file [-s|--squeeze-repeats] 'input_characters'
+tr,Translate the contents of a file to upper-case,"tr < path/to/file ""[:lower:]"" ""[:upper:]"""
+tr,Strip out non-printable characters from a file,"tr < path/to/file [-cd|--complement --delete] ""[:print:]"""
+find,Find files by extension,find path/to/directory -name '*.ext'
+find,Find files matching multiple path/name patterns,find path/to/directory -path '*/path/*/*.ext' -or -name '*pattern*'
+find,"Find directories matching a given name, in case-insensitive mode",find path/to/directory -type d -iname '*lib*'
+find,"Find files matching a given pattern, excluding specific paths",find path/to/directory -name '*.py' -not -path '*/site-packages/*'
+find,"Find files matching a given size range, limiting the recursive depth to ""1""",find path/to/directory -maxdepth 1 -size +500k -size -10M
+find,Run a command for each file (use `{}` within the command to access the filename),find path/to/directory -name '*.ext' -exec wc -l {} \;
+find,Find all files modified today and pass the results to a single command as arguments,find path/to/directory -daystart -mtime -1 -exec tar -cvf archive.tar {} \+
+find,Search for either empty files or directories and delete them verbosely,find path/to/directory -type f|d -empty -delete -print
+diff,Compare files (lists changes to turn `old_file` into `new_file`),diff path/to/old_file path/to/new_file
+diff,"Compare files, ignoring white spaces",diff [-w|--ignore-all-space] path/to/old_file path/to/new_file
+diff,"Compare files, showing the differences side by side",diff [-y|--side-by-side] path/to/old_file path/to/new_file
+diff,"Compare files, showing the differences in unified format (as used by `git diff`)",diff [-u|--unified] path/to/old_file path/to/new_file
+diff,Compare directories recursively (shows names for differing files/directories as well as changes made to files),diff [-r|--recursive] path/to/old_directory path/to/new_directory
+diff,"Compare directories, only showing the names of files that differ",diff [-r|--recursive] [-q|--brief] path/to/old_directory path/to/new_directory
+diff,"Create a patch file for Git from the differences of two text files, treating nonexistent files as empty",diff [-a|--text] [-u|--unified] [-N|--new-file] path/to/old_file path/to/new_file > path/to/diff.patch
+diff,"Compare files, showing output in color, trying hard to find the smallest set of changes",diff [-d|--minimal] --color=always path/to/old_file path/to/new_file
+whois,Get information about a domain name,whois example.com
+whois,Get information about an IP address,whois 8.8.8.8
+whois,Get abuse contact for an IP address,whois -b 8.8.8.8
+vim,Open a file,vim path/to/file
+vim,Open a file at a specified line number,vim +line_number path/to/file
+vim,View Vim's help manual,<:>help<Enter>
+vim,Save and quit the current buffer,<Esc><Z><Z>|<Esc><:>x<Enter>|<Esc><:>wq<Enter>
+vim,Enter normal mode and undo the last operation,<Esc><u>
+vim,Search for a pattern in the file (press `<n>`/`<N>` to go to next/previous match),</>search_pattern<Enter>
+vim,Perform a `regex` substitution in the whole file,<:>%s/regex/replacement/g<Enter>
+vim,Display the line numbers,<:>set nu<Enter>
+basename,Show only the file name from a path,basename path/to/file
+basename,Show only the rightmost directory name from a path,basename path/to/directory
+basename,"Show only the file name from a path, with a suffix removed",basename path/to/file suffix
+touch,Create specific files,touch path/to/file1 path/to/file2 ...
+touch,Set the file [a]ccess or [m]odification times to the current one and don't create file if it doesn't exist,touch [-c|--no-create] -a|-m path/to/file1 path/to/file2 ...
+touch,Set the file [t]ime to a specific value and don't create file if it doesn't exist,touch [-c|--no-create] -t YYYYMMDDHHMM.SS path/to/file1 path/to/file2 ...
+touch,"Set the files' timestamp to the reference file's timestamp, and do not create the file if it does not exist",touch [-c|--no-create] [-r|--reference] path/to/reference_file path/to/file1 path/to/file2 ...
+touch,Set the timestamp by parsing a string,"touch [-d|--date] ""last year|5 hours|next thursday|nov 14|..."" path/to/file"
+touch,Create multiple files with an increasing number,touch path/to/file{1..10}
+touch,Create multiple files with a letter range,touch path/to/file{a..z}
+whoami,View documentation for the original command,tldr id
+more,Open a file,more path/to/file
+more,Display a specific line,more +line_number path/to/file
+more,Go to the next page,<Space>
+more,Search for a string (press `<n>` to go to the next match),</>something<Enter>
+more,Exit,<q>
+more,Display help about interactive commands,<h>
+zip,Add files/directories to a specific archive,zip [-r|--recurse-paths] path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ...
+zip,Remove files/directories from a specific archive,zip [-d|--delete] path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ...
+zip,Archive files/directories excluding specified ones,zip [-r|--recurse-paths] path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ... [-x|--exclude] path/to/excluded_files_or_directories
+zip,"Archive files/directories with a specific compression level (`0` the lowest, `9` the highest)",zip [-r|--recurse-paths] -0..9 path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ...
+zip,Create an encrypted archive with a specific password,zip [-re|--recurse-paths --encrypt] path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ...
+zip,Archive files/directories to a multi-part split Zip archive (e.g. 3 GB parts),zip [-rs|--recurse-paths --split-size] 3g path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ...
+zip,Print a specific archive contents,zip [-sf|--split-size --freshen] path/to/compressed.zip
+mkdir,Create specific directories,mkdir path/to/directory1 path/to/directory2 ...
+mkdir,Create specific directories and their parents if needed,mkdir [-p|--parents] path/to/directory1 path/to/directory2 ...
+mkdir,Create directories with specific permissions,mkdir [-m|--mode] rwxrw-r-- path/to/directory1 path/to/directory2 ...
+mkdir,Create multiple nested directories recursively,"mkdir [-p|--parents] path/to/{a,b}/{x,y,z}/{h,i,j}"
+btop,Start `btop`,btop
+btop,Start `btop` with the specified settings preset,btop [-p|--preset] 0..9
+btop,Start `btop` in TTY mode using 16 colors and TTY-friendly graph symbols,btop [-t|--tty]
+btop,Start `btop` in 256-color mode instead of 24-bit color mode,btop [-l|--low-color]
+btop,Set the update rate to 500 milliseconds,btop [-u|--update] 500
+btop,Exit `btop`,<q>
+btop,Display help,btop [-h|--help]
+nano,"Open specific files, moving to the next file after closing the previous one",nano path/to/file1 path/to/file2 ...
+nano,Start the editor without using configuration files,nano [-I|--ignorercfiles]
+nano,Open a file and position the cursor at a specific line and column,"nano +line,column path/to/file"
+nano,Open a file and enable soft wrapping,nano [-S|--softwrap] path/to/file
+nano,Open a file and indent new lines to the previous line's indentation,nano [-i|--autoindent] path/to/file
+nano,Open a file and create a backup file (`path/to/file~`) on save,nano [-B|--backup] path/to/file
+nano,Open a file in restricted mode (i.e. don't read/write to files not specified on the command-line),nano [-R|--restricted] path/to/file
+nano,Exit nano,<Ctrl x>
+pwd,Print the current directory,pwd
+pwd,"Print the current directory, and resolve all symlinks (i.e. show the ""physical"" path)",pwd [-P|--physical]
+pwd,Display help,pwd --help
+uniq,Display each line once,sort path/to/file | uniq
+uniq,Display only unique lines,sort path/to/file | uniq [-u|--unique]
+uniq,Display only duplicate lines,sort path/to/file | uniq [-d|--repeated]
+uniq,Display number of occurrences of each line along with that line,sort path/to/file | uniq [-c|--count]
+uniq,"Display number of occurrences of each line, sorted by the most frequent",sort path/to/file | uniq [-c|--count] | sort [-nr|--numeric-sort --reverse]
+uniq,Compare only the first 10 characters on each line for uniqueness,sort path/to/file | uniq [-w|--check-chars] 10
+uniq,Compare text after the first 5 characters on each line for uniqueness,sort path/to/file | uniq [-s|--skip-chars] 5
+kill,Terminate a program using the default SIGTERM (terminate) signal,kill process_id
+kill,List available signal names (to be used without the `SIG` prefix),kill -l
+kill,Terminate a program using the SIGHUP (hang up) signal. Many daemons will reload instead of terminating,kill [-1|-HUP] process_id
+kill,Terminate a program using the SIGINT (interrupt) signal. This is typically initiated by the user pressing `<Ctrl c>`,kill [-2|-INT] process_id
+kill,Signal the operating system to immediately terminate a program (which gets no chance to capture the signal),kill [-9|-KILL] process_id
+kill,"Signal the operating system to pause a program until a SIGCONT (""continue"") signal is received",kill [-19|-STOP] process_id
+kill,Send a `SIGUSR1` signal to all processes with the given GID (group id),kill -SIGUSR1 -group_id
+netstat,List all ports,netstat [-a|--all]
+netstat,List all listening ports,netstat [-l|--listening]
+netstat,List listening TCP ports,netstat [-t|--tcp]
+netstat,Display PID and program names,netstat [-p|--program]
+netstat,List information continuously,netstat [-c|--continuous]
+netstat,List routes and do not resolve IP addresses to hostnames,netstat [-rn|--route --numeric]
+netstat,List listening TCP and UDP ports (+ user and process if you're root),netstat [-tulpne|--tcp --udp --listening --program --numeric --extend]
+file,Give a description of the type of the specified file,file path/to/file
+file,Look inside a zipped file and determine the file type(s) inside,file [-z|--uncompress] path/to/file.zip
+file,Allow `file` to work with special or device files,file [-s|--special-files] path/to/file
+file,Don't stop at first file type match; keep going until the end of the file,file [-k|--keep-going] path/to/file
+file,Determine the MIME encoding type of a file,file [-i|--mime] path/to/file
+dig,Lookup the IP(s) associated with a hostname (A records),dig +short example.com
+dig,Get a detailed answer for a given domain (A records),dig +noall +answer example.com
+dig,Query a specific DNS record type associated with a given domain name,dig +short example.com A|MX|TXT|CNAME|NS
+dig,Specify an alternate DNS server to query and optionally use DNS over TLS (DoT),dig +tls @1.1.1.1|8.8.8.8|9.9.9.9|... example.com
+dig,Perform a reverse DNS lookup on an IP address (PTR record),dig -x 8.8.8.8
+dig,Find authoritative name servers for the zone and display SOA records,dig +nssearch example.com
+dig,Perform iterative queries and display the entire trace path to resolve a domain name,dig +trace example.com
+dig,Query a DNS server over a non-standard [p]ort using the TCP protocol,dig +tcp -p port @dns_server_ip example.com
+uptime,"Print current time, uptime, number of logged-in users, and other information",uptime
+uptime,Show only the amount of time the system has been booted for,uptime [-p|--pretty]
+uptime,Print the date and time the system booted up at,uptime [-s|--since]
+uptime,Display the time data in seconds,uptime [-r|--raw]
+uptime,Display version,uptime [-V|--version]
+scp,Copy a local file to a remote host,scp path/to/local_file remote_host:path/to/remote_file
+scp,Use a specific port when connecting to the remote host,scp -P port path/to/local_file remote_host:path/to/remote_file
+scp,Copy a file from a remote host to a local directory,scp remote_host:path/to/remote_file path/to/local_directory
+scp,Recursively copy the contents of a directory from a remote host to a local directory,scp -r remote_host:path/to/remote_directory path/to/local_directory
+scp,Copy a file between two remote hosts transferring through the local host,scp -3 host1:path/to/remote_file host2:path/to/remote_directory
+scp,Use a specific username when connecting to the remote host,scp path/to/local_file remote_username@remote_host:path/to/remote_directory
+scp,Use a specific SSH private key for authentication with the remote host,scp -i ~/.ssh/private_key path/to/local_file remote_host:path/to/remote_file
+scp,Use a specific proxy when connecting to the remote host,scp -J proxy_username@proxy_host path/to/local_file remote_host:path/to/remote_file
+source,Evaluate contents of a given file,source path/to/file
+source,Evaluate contents of a given file (alternatively replacing `source` with `.`),. path/to/file
+date,Display the current date using the default locale's format,date +%c
+date,"Display the current date in UTC, using the ISO 8601 format",date [-u|--utc] +%Y-%m-%dT%H:%M:%S%Z
+date,Display the current date as a Unix timestamp (seconds since the Unix epoch),date +%s
+date,Convert a date specified as a Unix timestamp to the default format,date [-d|--date] @1473305798
+date,Convert a given date to the Unix timestamp format,"date [-d|--date] ""2018-09-01 00:00"" +%s [-u|--utc]"
+date,Display the current date using the RFC-3339 format (`YYYY-MM-DD hh:mm:ss TZ`),date --rfc-3339 s
+date,Set the current date using the format `MMDDhhmmYYYY.ss` (`YYYY` and `.ss` are optional),date 093023592021.59
+date,Display the current ISO week number,date +%V
+echo,Print a text message. Note: Quotes are optional,"echo ""Hello World"""
+echo,Print a message with environment variables,"echo ""My path is $PATH"""
+echo,Print a message without the trailing newline,"echo -n ""Hello World"""
+echo,Append a message to the file,"echo ""Hello World"" >> file.txt"
+echo,Enable interpretation of backslash escapes (special characters),"echo -e ""Column 1\tColumn 2"""
+echo,Print the exit status of the last executed command (Note: In Windows Command Prompt and PowerShell the equivalent commands are `echo %errorlevel%` and `$lastexitcode` respectively),echo $?
+echo,Pass text to another program through `stdin`,"echo ""Hello World"" | program"
+wget,"Download the contents of a URL to a file (named ""foo"" in this case)",wget https://example.com/foo
+wget,"Download the contents of a URL to a file (named ""bar"" in this case)",wget [-O|--output-document] bar https://example.com/foo
+wget,"Download a single web page and all its resources with 3-second intervals between requests (scripts, stylesheets, images, etc.)",wget [-pkw|--page-requisites --convert-links --wait] 3 https://example.com/some_page.html
+wget,Download all listed files within a directory and its sub-directories (does not download embedded page elements),wget [-mnp|--mirror --no-parent] https://example.com/some_path/
+wget,Limit the download speed and the number of connection retries,wget --limit-rate 300k [-t|--tries] 100 https://example.com/some_path/
+wget,Download a file from an HTTP server using Basic Auth (also works for FTP),wget --user username --password password https://example.com
+wget,Continue an incomplete download,wget [-c|--continue] https://example.com
+wget,Download all URLs stored in a text file to a specific directory,wget [-P|--directory-prefix] path/to/directory [-i|--input-file] path/to/URLs.txt
+cd,Go to the specified directory,cd path/to/directory
+cd,Go up to the parent of the current directory,cd ..
+cd,Go to the home directory of the current user,cd
+cd,Go to the home directory of the specified user,cd ~username
+cd,Go to the previously chosen directory,cd -
+cd,Go to the root directory,cd /
+history,Display the commands history list with line numbers,history
+history,Display the last 20 commands (in Zsh it displays all commands starting from the 20th),history 20
+history,Display history with timestamps in different formats (only available in Zsh),history -d|f|i|E
+history,[c]lear the commands history list,history -c
+history,Over[w]rite history file with history of current Bash shell (often combined with `history -c` to purge history),history -w
+history,[d]elete the history entry at the specified offset,history -d offset
+history,Add a command to history without running it,history -s command
+history,Run a command without adding it to history by adding a leading space,<Space>command
+nslookup,Query your system's default name server for an IP address (A record) of the domain,nslookup example.com
+nslookup,Query a given name server for a NS record of the domain,nslookup -type=NS example.com 8.8.8.8
+nslookup,Query for a reverse lookup (PTR record) of an IP address,nslookup -type=PTR 54.240.162.118
+nslookup,Query for ANY available records using TCP protocol,nslookup -vc -type=ANY example.com
+nslookup,Query a given name server for the whole zone file (zone transfer) of the domain using TCP protocol,nslookup -vc -type=AXFR example.com name_server
+nslookup,"Query for a mail server (MX record) of the domain, showing details of the transaction",nslookup -type=MX -debug example.com
+nslookup,Query a given name server on a specific port number for a TXT record of the domain,nslookup -port=port_number -type=TXT example.com name_server
+ping,Ping a host,ping host
+ping,Ping a host only a specific number of times,ping -c count host
+ping,"Ping host, specifying the interval in seconds between requests (default is 1 second)",ping -i seconds host
+ping,Ping host without trying to lookup symbolic names for addresses,ping -n host
+ping,Ping host and ring the bell when a packet is received (if your terminal supports it),ping -a host
+ping,Also display a message if no response was received,ping -O host
+ping,"Ping a host with specific number of pings, per-packet response timeout (`-W`), and total time limit (`-w`) of the entire ping run",ping -c count -W seconds -w seconds host
+brew,Install the latest stable version of a formula or cask,brew install formula|cask
+brew,List all installed formulae and casks,brew list
+brew,"Upgrade an installed formula or cask (if none is given, all installed formulae/casks are upgraded)",brew upgrade formula|cask
+brew,Fetch the newest version of Homebrew and of all formulae and casks from the Homebrew source repository,brew update
+brew,Show formulae and casks that have a more recent version available,brew outdated
+brew,Search for available formulae (i.e. packages) and casks (i.e. native macOS `.app` packages),brew search text
+brew,"Display information about a formula or a cask (version, installation path, dependencies, etc.)",brew info formula|cask
+brew,Check the local Homebrew installation for potential problems,brew doctor
+less,Open a file for interactive reading,less path/to/source_file
+less,Page down/up,<Space>|<b>
+less,Go to end/start of file,<G>|<g>
+less,Forward search for a string (press `<n>`/`<N>` to go to next/previous match),</>pattern
+less,Backward search for a string (press `<n>`/`<N>` to go to next/previous match),<?>pattern
+less,Follow the output of the currently opened file,<F>
+less,Open the current file in an editor,<v>
+less,Exit,<q>
+fd,Recursively find files matching a specific pattern in the current directory,"fd ""string|regex"""
+fd,Find files that begin with a specific string,"fd ""^string"""
+fd,Find files with a specific extension,fd [-e|--extension] txt
+fd,Find files in a specific directory,"fd ""string|regex"" path/to/directory"
+fd,Include ignored and hidden files in the search,"fd [-H|--hidden] [-I|--no-ignore] ""string|regex"""
+fd,Exclude files that match a specific glob pattern,fd string [-E|--exclude] glob
+fd,Execute a command on each search result returned,"fd ""string|regex"" [-x|--exec] command"
+fd,Find files only in the current directory,"fd [-d|--max-depth] 1 ""string|regex"""
+ifconfig,View network settings of an interface,ifconfig interface_name
+ifconfig,"Display details of all interfaces, including disabled interfaces",ifconfig -a
+ifconfig,Disable an interface,ifconfig interface_name down
+ifconfig,Enable an interface,ifconfig interface_name up
+ifconfig,Assign an IP address to an interface,ifconfig interface_name ip_address
+ssh,Connect to a remote server,ssh username@remote_host
+ssh,Connect to a remote server with a specific [i]dentity (private key),ssh -i path/to/key_file username@remote_host
+ssh,Connect to a remote server with IP `10.0.0.1` and using a specific [p]ort (Note: `10.0.0.1` can be shortened to `10.1`),ssh username@10.0.0.1 -p 2222
+ssh,Run a command on a remote server with a [t]ty allocation allowing interaction with the remote command,ssh username@remote_host -t command command_arguments
+ssh,SSH tunneling: [D]ynamic port forwarding (SOCKS proxy on `localhost:1080`),ssh -D 1080 username@remote_host
+ssh,SSH tunneling: Forward a specific port (`localhost:9999` to `example.org:80`) along with disabling pseudo-[T]ty allocation and executio[N] of remote commands,ssh -L 9999:example.org:80 -N -T username@remote_host
+ssh,SSH [J]umping: Connect through a jumphost to a remote server (Multiple jump hops may be specified separated by comma characters),ssh -J username@jump_host username@remote_host
+ssh,Close a hanged session,<Enter><~><.>
+curl,Make an HTTP GET request and dump the contents in `stdout`,curl https://example.com
+curl,"Make an HTTP GET request, follow any `3xx` redirects, and dump the reply headers and contents to `stdout`",curl [-L|--location] [-D|--dump-header] - https://example.com
+curl,"Download a file, saving the output under the filename indicated by the URL",curl [-O|--remote-name] https://example.com/filename.zip
+curl,Send form-encoded data (POST request of type `application/x-www-form-urlencoded`). Use `--data @file_name` or `--data @'-'` to read from `stdin`,curl [-X|--request] POST [-d|--data] 'name=bob' http://example.com/form
+curl,"Send a request with an extra header, using a custom HTTP method and over a proxy (such as BurpSuite), ignoring insecure self-signed certificates",curl [-k|--insecure] [-x|--proxy] http://127.0.0.1:8080 [-H|--header] 'Authorization: Bearer token' [-X|--request] GET|PUT|POST|DELETE|PATCH|... https://example.com
+curl,"Send data in JSON format, specifying the appropriate Content-Type header","curl [-d|--data] '{""name"":""bob""}' [-H|--header] 'Content-Type: application/json' http://example.com/users/1234"
+curl,"Pass client certificate and private key for the request, skipping certificate validation",curl [-E|--cert] client.pem --key key.pem [-k|--insecure] https://example.com
+curl,"Resolve a hostname to a custom IP address, with verbose output (similar to editing the `/etc/hosts` file for custom DNS resolution)",curl [-v|--verbose] --resolve example.com:80:127.0.0.1 http://example.com
+alias,List all aliases,alias
+alias,Create a generic alias,"alias word=""command"""
+alias,View the command associated to a given alias,alias word
+alias,Remove an aliased command,unalias word
+alias,Turn `rm` into an interactive command,"alias rm=""rm --interactive"""
+alias,Create `la` as a shortcut for `ls --all`,"alias la=""ls --all"""
+clear,Clear the screen,clear
+clear,Clear the screen but keep the terminal's scrollback buffer (equivalent to pressing `<Ctrl l>` in Bash),clear -x
+clear,Indicate the type of terminal to clean (defaults to the value of the environment variable `$TERM`),clear -T type_of_terminal
+clear,Display the version of `ncurses` used by `clear`,clear -V
+chmod,Give the [u]ser who owns a file the right to e[x]ecute it,chmod u+x path/to/file
+chmod,Give the [u]ser rights to [r]ead and [w]rite to a file/directory,chmod u+rw path/to/file_or_directory
+chmod,Remove e[x]ecutable rights from the [g]roup,chmod g-x path/to/file
+chmod,Give [a]ll users rights to [r]ead and e[x]ecute,chmod a+rx path/to/file
+chmod,Give [o]thers (not in the file owner's group) the same rights as the [g]roup,chmod o=g path/to/file
+chmod,Remove all rights from [o]thers,chmod o= path/to/file
+chmod,Change permissions recursively giving [g]roup and [o]thers the ability to [w]rite,"chmod [-R|--recursive] g+w,o+w path/to/directory"
+chmod,Recursively give [a]ll users [r]ead permissions to files. Also give e[X]ecute permissions to files that have at least one execution permission and to all sub-directories,chmod [-R|--recursive] a+rX path/to/directory
+gunzip,View documentation for the original command,tldr gzip
+df,Display all filesystems and their disk usage (using 512-byte units),df
+df,Display the filesystem containing the specified file or directory,df path/to/file_or_directory
+df,Use [k]ibibyte (1024 byte) units when showing size figures,df -k
+df,Display information in a portable way,df -P
+wc,Count all lines in a file,wc [-l|--lines] path/to/file
+wc,Count all words in a file,wc [-w|--words] path/to/file
+wc,Count all bytes in a file,wc [-c|--bytes] path/to/file
+wc,Count all characters in a file (taking multi-byte characters into account),wc [-m|--chars] path/to/file
+wc,"Count all lines, words, and bytes from `stdin`",find . | wc
+wc,Count the length of the longest line in number of characters,wc [-L|--max-line-length] path/to/file
+git,Create an empty Git repository,git init
+git,Clone a remote Git repository from the internet,git clone https://example.com/repo.git
+git,View the status of the local repository,git status
+git,Stage all changes for a commit,git add [-A|--all]
+git,Commit changes to version history,git commit [-m|--message] message_text
+git,Push local commits to a remote repository,git push
+git,Pull any changes made to a remote,git pull
+git,Reset everything the way it was in the latest commit,git reset --hard; git clean [-f|--force]
+tail,Show last 10 lines in a file,tail path/to/file
+tail,Show last 10 lines of multiple files,tail path/to/file1 path/to/file2 ...
+tail,Show last 5 lines in file,tail [-5|--lines 5] path/to/file
+tail,Print a file from a specific line number,tail [-n|--lines] +count path/to/file
+tail,Print a specific count of bytes from the end of a given file,tail [-c|--bytes] count path/to/file
+tail,Print the last lines of a given file and keep reading it until `<Ctrl c>`,tail [-f|--follow] path/to/file
+tail,"Keep reading file until `<Ctrl c>`, even if the file is inaccessible",tail [-F|--retry --follow] path/to/file
+tail,Show last `count` lines in a file and refresh every `seconds` seconds,tail [-n|--lines] count [-s|--sleep-interval] seconds [-f|--follow] path/to/file
+gzip,"Compress a file, replacing it with a `gzip` archive",gzip path/to/file
+gzip,"Decompress a file, replacing it with the original uncompressed version",gzip [-d|--decompress] path/to/file.gz
+gzip,Display the name and reduction percentage for each file compressed,gzip [-v|--verbose] path/to/file.gz
+gzip,"Compress a file, keeping the original file",gzip [-k|--keep] path/to/file
+gzip,"Compress a file, specifying the output filename",gzip [-c|--stdout] path/to/file > path/to/compressed_file.gz
+gzip,Decompress a `gzip` archive specifying the output filename,gzip [-cd|--stdout --decompress] path/to/file.gz > path/to/uncompressed_file
+gzip,"Specify the compression level. 1 is the fastest (low compression), 9 is the slowest (high compression), 6 is the default",gzip -1..9 [-c|--stdout] path/to/file > path/to/compressed_file.gz
+gzip,List the contents of a compressed file,gzip [-l|--list] path/to/file.txt.gz
+tree,Print files and directories up to `num` levels of depth (where 1 means the current directory),tree -L num
+tree,Print directories only,tree -d
+tree,Print hidden files too with colorization on,tree -a -C
+tree,"Print the tree without indentation lines, showing the full path instead (use `-N` to not escape non-printable characters)",tree -i -f
+tree,"Print the size of each file and the cumulative size of each directory, in human-readable format",tree -s -h --du
+tree,"Print files within the tree hierarchy, using a wildcard (glob) pattern, and pruning out directories that don't contain matching files",tree -P '*.txt' --prune
+tree,"Print directories within the tree hierarchy, using the wildcard (glob) pattern, and pruning out directories that aren't ancestors of the wanted one",tree -P directory_name --matchdirs --prune
+tree,Print the tree ignoring the given directories,tree -I 'directory_name1|directory_name2'
+grep,Search for a pattern within files,"grep ""search_pattern"" path/to/file1 path/to/file2 ..."
+grep,Search for an exact string (disables `regex`es),"grep [-F|--fixed-strings] ""exact_string"" path/to/file"
+grep,"Search for a pattern in all files recursively in a directory, ignoring binary files","grep [-rI|--recursive --binary-files=without-match] ""search_pattern"" path/to/directory"
+grep,"Print 3 lines of [C]ontext around, [B]efore, or [A]fter each match","grep --context|--before-context|--after-context 3 ""search_pattern"" path/to/file"
+grep,Print file name and line number for each match with color output,"grep [-Hn|--with-filename --line-number] --color=always ""search_pattern"" path/to/file"
+grep,Print only the matched text,"grep [-o|--only-matching] ""search_pattern"" path/to/file"
+grep,Read data from `stdin` and do not print lines that match a pattern,"cat path/to/file | grep [-v|--invert-match] ""search_pattern"""
+grep,"Use extended `regex`es (supports `?`, `+`, `{}`, `()`, and `|`), in case-insensitive mode","grep [-Ei|--extended-regexp --ignore-case] ""search_pattern"" path/to/file"
+rmdir,Remove specific directories,rmdir path/to/directory1 path/to/directory2 ...
+rmdir,Remove specific nested directories recursively,rmdir [-p|--parents] path/to/directory1 path/to/directory2 ...
+rmdir,Clean a directory of empty directories,rmdir *
+killall,Terminate a process using the default SIGTERM (terminate) signal,killall process_name
+killall,List available signal names (to be used without the `SIG` prefix),killall [-l|--list]
+killall,Interactively ask for confirmation before termination,killall [-i|--interactive] process_name
+killall,"Terminate a process using the SIGINT (interrupt) signal, which is the same signal sent by pressing `<Ctrl c>`",killall -INT process_name
+killall,Force kill a process,killall -KILL process_name
+arch,View documentation for the original command,tldr uname
+rm,Remove specific files,rm path/to/file1 path/to/file2 ...
+rm,Remove specific files ignoring nonexistent ones,rm [-f|--force] path/to/file1 path/to/file2 ...
+rm,Remove specific files interactively prompting before each removal,rm [-i|--interactive] path/to/file1 path/to/file2 ...
+rm,Remove specific files printing info about each removal,rm [-v|--verbose] path/to/file1 path/to/file2 ...
+rm,Remove specific files and directories recursively,rm [-r|--recursive] path/to/file_or_directory1 path/to/file_or_directory2 ...
+rm,Remove empty directories (this is considered the safe method),rm [-d|--dir] path/to/directory
+du,"List the sizes of a directory and any subdirectories, in the given unit (B/KiB/MiB)",du -b|k|m path/to/directory
+du,"List the sizes of a directory and any subdirectories, in human-readable form (i.e. auto-selecting the appropriate unit for each size)",du [-h|--human-readable] path/to/directory
+du,"Show the size of a single directory, in human-readable units",du [-sh|--summarize --human-readable] path/to/directory
+du,List the human-readable sizes of a directory and of all the files and directories within it,du [-ah|--all --human-readable] path/to/directory
+du,"List the human-readable sizes of a directory and any subdirectories, up to `n` levels deep",du [-h|--human-readable] [-d|--max-depth] n path/to/directory
+du,"List the human-readable size of all `.jpg` files in current directory, and show a cumulative total at the end",du [-ch|--total --human-readable] *.jpg
+du,List all files and directories (including hidden ones) above a certain threshold size (useful for investigating what is actually taking up the space),du [-ah|--all --human-readable] [-t|--threshold] 1G|1024M|1048576K .[^.]* *
+awk,Print the fifth column (a.k.a. field) in a space-separated file,awk '{print $5}' path/to/file
+awk,"Print the second column of the lines containing ""foo"" in a space-separated file",awk '/foo/ {print $2}' path/to/file
+awk,"Print the last column of each line in a file, using a comma (instead of space) as a field separator","awk -F ',' '{print $NF}' path/to/file"
+awk,Sum the values in the first column of a file and print the total,awk '{s+=$1} END {print s}' path/to/file
+awk,Print every third line starting from the first line,awk 'NR%3==1' path/to/file
+awk,Print different values based on conditions,"awk '{if ($1 == ""foo"") print ""Exact match foo""; else if ($1 ~ ""bar"") print ""Partial match bar""; else print ""Baz""}' path/to/file"
+awk,Print all the lines which the 10th column value is between a min and a max,awk '($10 >= min_value && $10 <= max_value)' path/to/file
+awk,"Print table of users with UID >=1000 with header and formatted output, using colon as separator (`%-20s` mean: 20 left-align string characters, `%6s` means: 6 right-align string characters)","awk 'BEGIN {FS="":"";printf ""%-20s %6s %25s\n"", ""Name"", ""UID"", ""Shell""} $4 >= 1000 {printf ""%-20s %6d %25s\n"", $1, $4, $7}' /etc/passwd"
+bat,Pretty print the contents of one or more files to `stdout`,bat path/to/file1 path/to/file2 ...
+bat,Concatenate several files into the target file,bat path/to/file1 path/to/file2 ... > path/to/target_file
+bat,"Remove decorations and disable paging (`--style plain` can be replaced with `-p`, or both options with `-pp`)",bat --style plain --pager never path/to/file
+bat,Highlight a specific line or a range of lines with a different background color,bat [-H|--highlight-line] 10|5:10|:10|10:|10:+5 path/to/file
+bat,"Show non-printable characters like space, tab, or newline",bat [-A|--show-all] path/to/file
+bat,Remove all decorations except line numbers in the output,bat [-n|--number] path/to/file
+bat,Syntax highlight a JSON file by explicitly setting the language,bat [-l|--language] json path/to/file.json
+bat,Display all supported languages,bat [-L|--list-languages]
+ls,List files one per line,ls -1
+ls,"List all files, including hidden files",ls [-a|--all]
+ls,"List files with a trailing symbol to indicate file type (directory/, symbolic_link@, executable*, ...)",ls [-F|--classify]
+ls,"List all files in [l]ong format (permissions, ownership, size, and modification date)",ls [-la|-l --all]
+ls,"List files in [l]ong format with size displayed using human-readable units (KiB, MiB, GiB)",ls [-lh|-l --human-readable]
+ls,"List files in [l]ong format, sorted by [S]ize (descending) recursively",ls [-lSR|-lS --recursive]
+ls,"List files in [l]ong format, sorted by [t]ime the file was modified and in reverse order (oldest first)",ls [-ltr|-lt --reverse]
+ls,Only list directories,ls [-d|--directory] */
+cp,Copy a file to another location,cp path/to/source_file path/to/target_file
+cp,"Copy a file into another directory, keeping the filename",cp path/to/source_file path/to/target_parent_directory
+cp,"Recursively copy a directory's contents to another location (if the destination exists, the directory is copied inside it)",cp [-r|--recursive] path/to/source_directory path/to/target_directory
+cp,"Copy a directory recursively, in verbose mode (shows files as they are copied)",cp [-vr|--verbose --recursive] path/to/source_directory path/to/target_directory
+cp,Copy multiple files at once to a directory,cp [-t|--target-directory] path/to/destination_directory path/to/file1 path/to/file2 ...
+cp,"Copy all files with a specific extension to another location, in interactive mode (prompts user before overwriting)",cp [-i|--interactive] *.ext path/to/target_directory
+cp,Follow symbolic links before copying,cp [-L|--dereference] link path/to/target_directory
+cp,"Use the full path of source files, creating any missing intermediate directories when copying",cp --parents source/path/to/file path/to/target_file
+sort,Sort a file in ascending order,sort path/to/file
+sort,Sort a file in descending order,sort [-r|--reverse] path/to/file
+sort,Sort a file in case-insensitive way,sort [-f|--ignore-case] path/to/file
+sort,Sort a file using numeric rather than alphabetic order,sort [-n|--numeric-sort] path/to/file
+sort,"Sort `/etc/passwd` by the 3rd field onward of each line numerically, using `:` as a field separator",sort [-t|--field-separator] : [-k|--key] 3n /etc/passwd
+sort,"As above, but when items in the 3rd field are equal, sort by the 4th field by numbers with exponents","sort [-t|--field-separator] : [-k|--key] 3,3n [-k|--key] 4,4g /etc/passwd"
+sort,Sort a file preserving only unique lines,sort [-u|--unique] path/to/file
+sort,"Sort a file, printing the output to the specified output file (can be used to sort a file in-place)",sort [-o|--output] path/to/output_file path/to/input_file
+man,Display the man page for a command,man command
+man,Open the man page for a command in a browser (`=browser_name` can be omitted if `$BROWSER` is set),man [-H|--html=]browser_name command
+man,Display the man page for a command from section 7,man 7 command
+man,List all available sections for a command,man [-f|--whatis] command
+man,Display the path searched for manpages,man [-w|--path]
+man,Display the location of a manpage rather than the manpage itself,man [-w|--where] command
+man,Display the man page using a specific locale,man [-L|--locale] locale command
+man,Search for manpages containing a search string,"man [-k|--apropos] ""search_string"""
+cat,Print the contents of a file to `stdout`,cat path/to/file
+cat,Concatenate several files into an output file,cat path/to/file1 path/to/file2 ... > path/to/output_file
+cat,Append several files to an output file,cat path/to/file1 path/to/file2 ... >> path/to/output_file
+cat,Copy the contents of a file into an output file without buffering,cat -u /dev/tty12 > /dev/tty13
+cat,Write `stdin` to a file,cat - > path/to/file
+tar,[c]reate an archive and write it to a [f]ile,tar cf path/to/target.tar path/to/file1 path/to/file2 ...
+tar,[c]reate a g[z]ipped archive and write it to a [f]ile,tar czf path/to/target.tar.gz path/to/file1 path/to/file2 ...
+tar,[c]reate a g[z]ipped (compressed) archive from a directory using relative paths,tar czf path/to/target.tar.gz [-C|--directory] path/to/directory .
+tar,E[x]tract a (compressed) archive [f]ile into the current directory [v]erbosely,tar xvf path/to/source.tar[.gz|.bz2|.xz]
+tar,E[x]tract a (compressed) archive [f]ile into the target directory,tar xf path/to/source.tar[.gz|.bz2|.xz] [-C|--directory] path/to/directory
+tar,"[c]reate a compressed archive and write it to a [f]ile, using the file extension to [a]utomatically determine the compression program",tar caf path/to/target.tar.xz path/to/file1 path/to/file2 ...
+tar,Lis[t] the contents of a tar [f]ile [v]erbosely,tar tvf path/to/source.tar
+tar,E[x]tract files matching a pattern from an archive [f]ile,"tar xf path/to/source.tar --wildcards ""*.html"""
+dirname,Calculate the parent directory of a given path,dirname path/to/file_or_directory
+dirname,Calculate the parent directory of multiple paths,dirname path/to/file_or_directory1 path/to/file_or_directory2 ...
+dirname,Delimit output with a NUL character instead of a newline (useful when combining with `xargs`),dirname [-z|--zero] path/to/file_or_directory1 path/to/file_or_directory2 ...
+sudo,Run a command as the superuser,sudo less /var/log/syslog
+sudo,Edit a file as the superuser with your default editor,sudo [-e|--edit] /etc/fstab
+sudo,Run a command as another user and/or group,sudo [-u|--user] user [-g|--group] group id -a
+sudo,"Repeat the last command prefixed with `sudo` (only in Bash, Zsh, etc.)",sudo !!
+sudo,"Launch the default shell with superuser privileges and run login-specific files (`.profile`, `.bash_profile`, etc.)",sudo [-i|--login]
+sudo,Launch the default shell with superuser privileges without changing the environment,sudo [-s|--shell]
+sudo,"Launch the default shell as the specified user, loading the user's environment and reading login-specific files (`.profile`, `.bash_profile`, etc.)",sudo [-i|--login] [-u|--user] user
+sudo,List the allowed (and forbidden) commands for the invoking user,sudo [-ll|--list --list]
+unzip,Extract all files/directories from specific archives into the current directory,unzip path/to/archive1.zip path/to/archive2.zip ...
+unzip,Extract files/directories from archives to a specific path,unzip path/to/archive1.zip path/to/archive2.zip ... -d path/to/output
+unzip,Extract files/directories from archives to `stdout` alongside the extracted file names,unzip -c path/to/archive1.zip path/to/archive2.zip ...
+unzip,"Extract an archive created on Windows, containing files with non-ASCII (e.g. Chinese or Japanese characters) filenames",unzip -O gbk path/to/archive1.zip path/to/archive2.zip ...
+unzip,List the contents of a specific archive without extracting them,unzip -l path/to/archive.zip
+unzip,Extract specific files from an archive,unzip -j path/to/archive.zip path/to/file1_in_archive path/to/file2_in_archive ...
+sed,Replace all `apple` (basic `regex`) occurrences with `mango` (basic `regex`) in all input lines and print the result to `stdout`,command | sed 's/apple/mango/g'
+sed,Execute a specific script [f]ile and print the result to `stdout`,command | sed -f path/to/script.sed
+sed,Print just a first line to `stdout`,command | sed -n '1p'
+pgrep,Return PIDs of any running processes with a matching command string,pgrep process_name
+pgrep,Search for processes including their command-line options,"pgrep [-f|--full] ""process_name parameter"""
+pgrep,Search for processes run by a specific user,pgrep [-u|--euid] username process_name
+chown,Change the owner user of a file/directory,sudo chown user path/to/file_or_directory
+chown,Change the owner user and group of a file/directory,sudo chown user:group path/to/file_or_directory
+chown,Change the owner user and group to both have the name `user`,sudo chown user: path/to/file_or_directory
+chown,Change the group of a file to a group that the current user belongs to,chown :group path/to/file_or_directory
+chown,Recursively change the owner of a directory and its contents,sudo chown [-R|--recursive] user path/to/directory
+chown,Change the owner of a symbolic link,sudo chown [-h|--no-dereference] user path/to/symlink
+chown,Change the owner of a file/directory to match a reference file,sudo chown --reference path/to/reference_file path/to/file_or_directory
+ln,Create a symbolic link to a file or directory,ln [-s|--symbolic] /path/to/file_or_directory path/to/symlink
+ln,Create a symbolic link relative to where the link is located,ln [-s|--symbolic] path/to/file_or_directory path/to/symlink
+ln,Overwrite an existing symbolic link to point to a different file,ln [-sf|--symbolic --force] /path/to/new_file path/to/symlink
+ln,Create a hard link to a file,ln /path/to/file path/to/hardlink
+htop,Start `htop`,htop
+htop,Start `htop` displaying processes owned by a specific user,htop [-u|--user] username
+htop,Display processes hierarchically in a tree view to show the parent-child relationships,htop [-t|--tree]
+htop,Sort processes by a specified `sort_item` (use `htop --sort help` for available options),htop [-s|--sort] sort_item
+htop,"Start `htop` with the specified delay between updates, in tenths of a second (i.e. 50 = 5 seconds)",htop [-d|--delay] 50
+htop,Disable all system and process changing features,htop --readonly
+htop,See interactive commands while running `htop`,<F1>|<?>
+htop,Switch to a different tab,<Tab>
+cut,Print the fifth character on each line,command | cut [-c|--characters] 5
+cut,Print the fifth to tenth character of each line of the specified file,cut [-c|--characters] 5-10 path/to/file
+cut,Split each line in a file by a delimiter into fields and print fields two and six (default delimiter is `TAB`),"cut [-f|--fields] 2,6 path/to/file"
+cut,Split each line by the specified delimiter and print all from the second field onward,"command | cut [-d|--delimiter] ""delimiter"" [-f|--fields] 2-"
+cut,Use space as a delimiter and print only the first 3 fields,"command | cut [-d|--delimiter] "" "" [-f|--fields] -3"
+cut,Only print lines that contain the delimiter,"command | cut [-d|--delimiter] "":"" [-f|--fields] 1 [-s|--only-delimited]"
+cut,Print specific fields of lines that use `NUL` to terminate lines instead of newlines,"find . -print0 | cut [-z|--zero-terminated] [-d|--delimiter] ""/"" [-f|--fields] 2"
+mv,Rename a file or directory when the target is not an existing directory,mv path/to/source path/to/target
+mv,Move a file or directory into an existing directory,mv path/to/source path/to/existing_directory
+mv,"Move multiple files into an existing directory, keeping the filenames unchanged",mv path/to/source1 path/to/source2 ... path/to/existing_directory
+mv,Do not prompt for confirmation before overwriting existing files,mv [-f|--force] path/to/source path/to/target
+mv,"Prompt for confirmation interactively before overwriting existing files, regardless of file permissions",mv [-i|--interactive] path/to/source path/to/target
+mv,Do not overwrite existing files at the target,mv [-n|--no-clobber] path/to/source path/to/target
+mv,"Move files in verbose mode, showing files after they are moved",mv [-v|--verbose] path/to/source path/to/target
+mv,Specify target directory so that you can use external tools to gather movable files,find /var/log -type f -name '*.log' -print0 | xargs -0 mv [-t|--target-directory] path/to/target_directory
+vi,View documentation for the original command,tldr vim
+lsof,Find the processes that have a given file open,lsof path/to/file
+lsof,Find the process that opened a local internet port,lsof -i :port
+lsof,Only output the process ID (PID),lsof -t path/to/file
+lsof,List files opened by the given user,lsof -u username
+lsof,List files opened by the given command or process,lsof -c process_or_command_name
+lsof,"List files opened by a specific process, given its PID",lsof -p PID
+lsof,List open files in a directory,lsof +D path/to/directory
+lsof,Find the process that is listening on a local IPv6 TCP port and don't convert network or port numbers,lsof -i6TCP:port -sTCP:LISTEN -n -P
+crontab,[e]dit the crontab file for the current user,crontab -e
+crontab,[e]dit the crontab file for a specific [u]ser,sudo crontab -e -u user
+crontab,Replace the current crontab with the contents of the given file,crontab path/to/file
+crontab,[l]ist existing cron jobs for the current user,crontab -l
+crontab,[r]emove all cron jobs for the current user,crontab -r
+crontab,Sample cron job which runs at 10:00 every day (* means any value),0 10 * * * command_to_execute
+crontab,Sample cron job which runs a command every 10 minutes,*/10 * * * * command_to_execute
+crontab,Sample cron job which runs a certain script at 02:30 every Friday,30 2 * * Fri /path/to/script.sh
