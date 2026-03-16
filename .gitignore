@@ -215,7 +215,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-*.bin
 .DS_Store
 *.pth
 wandb
