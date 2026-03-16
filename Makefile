@@ -69,3 +69,9 @@ clean:
 	rm -rf build/ dist/ *.egg-info
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+
+vibe-server:
+	$(PYTHON) vibe_server.py --checkpoint $(CHECKPOINT)
+
+vibe-stop:
+	pkill -f vibe_server.py || true
