@@ -1,0 +1,451 @@
+input_nl,output_command
+display sleep now,pmset displaysleepnow
+pmset displaysleepnow activate,pmset displaysleepnow
+put the display to sleep immediately,pmset displaysleepnow
+how do i make my computer screen go to sleep right now using the terminal?,pmset displaysleepnow
+what is the terminal command to put the mac display to sleep instantly?,pmset displaysleepnow
+mac screen sleep immediate,pmset displaysleepnow
+size readme.md,"stat -f ""%z %N"" readme.md"
+stat -f %z %N on logfile.txt,"stat -f ""%z %N"" logfile.txt"
+display the byte size of the file 'data.csv',"stat -f ""%z %N"" data.csv"
+how do i find out how many bytes are in my important_document.docx file?,"stat -f ""%z %N"" important_document.docx"
+could you show me the command to get the size of a file named 'backup.zip' in bytes?,"stat -f ""%z %N"" backup.zip"
+check file size my_photo.png bytes,"stat -f ""%z %N"" my_photo.png"
+rtf info document,textutil -info document.rtf
+textutil -info for report.rtf,textutil -info report.rtf
+display information about the manual.rtf file,textutil -info manual.rtf
+how can i see the details of my resume.rtf file?,textutil -info resume.rtf
+what is the command to get information on a file called notes.rtf?,textutil -info notes.rtf
+show info project.rtf,textutil -info project.rtf
+eject disk,diskutil eject /dev/disk2
+diskutil eject optical media,diskutil eject /dev/disk3
+eject the CD from the drive,diskutil eject /dev/disk4
+how do i get my dvd out of the computer using the terminal?,diskutil eject /dev/disk5
+can you tell me the command to eject a disc from the command line?,diskutil eject /dev/disk6
+eject cd drive terminal,diskutil eject /dev/disk7
+ping google time,"ping --apple-time ""google.com"""
+ping --apple-time for apple.com,"ping --apple-time ""apple.com"""
+ping openai.com and display the apple-specific time,"ping --apple-time ""openai.com"""
+"i need to see the ping response time for github.com, how do i do that on my mac?","ping --apple-time ""github.com"""
+what is the terminal command to ping wikipedia.org and include the apple-time output?,"ping --apple-time ""wikipedia.org"""
+ping reddit.com show apple time,"ping --apple-time ""reddit.com"""
+list launch agents,launchctl list
+launchctl list all loaded agents,launchctl list
+show all loaded launch agents and daemons,launchctl list
+how can i see what background programs start up on my mac?,launchctl list
+could you please provide the command to list all active launchctl services?,launchctl list
+show mac background services list,launchctl list
+start google update agent,launchctl start com.google.keystone.agent
+launchctl start docker daemon process,launchctl start com.docker.docker
+manually start the safari bookmarks sync agent,launchctl start com.apple.SafariBookmarksSyncAgent
+how do i restart the icloud photos thingy if it's not working?,launchctl start com.apple.cloudphotosd
+could you please provide the command to start the screen sharing agent on macOS?,launchctl start com.apple.screensharing.agent
+start spotlight indexing service,launchctl start com.apple.metadata.mds
+stop google update agent,launchctl stop com.google.keystone.agent
+launchctl stop docker helper process,launchctl stop com.docker.helper
+kill the safari bookmarks sync agent,launchctl stop com.apple.SafariBookmarksSyncAgent
+"my photos aren't syncing to icloud, how do i restart the photo sync thingy?",launchctl stop com.apple.CloudPhotosSync.daemon
+could you please provide the command to stop the microsoft teams updater service?,launchctl stop com.microsoft.teams.TeamsUpdater
+stop mac notifications agent,launchctl stop com.apple.notificationcenterui.agent
+caffeinate disk,caffeinate -m
+caffeinate -m prevent disk sleep,caffeinate -m
+prevent the disk from sleeping on this mac,caffeinate -m
+how do i stop my mac's hard drive from going to sleep while i'm working?,caffeinate -m
+what is the terminal command to keep the disk awake on a mac?,caffeinate -m
+disk not sleep command,caffeinate -m
+prevent sleep 1 hour,caffeinate -u -t 3600
+caffeinate -t 3600 keep awake,caffeinate -u -t 3600
+prevent the mac from sleeping for one hour,caffeinate -u -t 3600
+how do i stop my computer from automatically going to sleep for a little while?,caffeinate -u -t 3600
+can you provide the terminal command to keep my mac awake for exactly an hour?,caffeinate -u -t 3600
+mac not sleep for hour,caffeinate -u -t 3600
+copy .bash_profile,pbcopy < ~/.bash_profile
+pbcopy input from hosts file,pbcopy < /etc/hosts
+copy the contents of the license agreement to the clipboard,pbcopy < LICENSE.txt
+how do i get all the text from my ssh key into the clipboard?,pbcopy < ~/.ssh/id_rsa
+i need to copy the entire contents of a text file named 'report.md' to the clipboard,pbcopy < report.md
+copy desktop document clipboard,pbcopy < ~/Desktop/document.pdf
+macOS build version,sw_vers -buildVersion
+sw_vers output buildVersion only,sw_vers -buildVersion
+print the macOS build identifier,sw_vers -buildVersion
+how can i see the specific build number of my mac operating system?,sw_vers -buildVersion
+what is the terminal command to display only the build version of macOS?,sw_vers -buildVersion
+macOS build number show,sw_vers -buildVersion
+count words article.txt,wc -w article.txt
+wc -w flag on main.swift,wc -w main.swift
+count the total words in the draft.docx file,wc -w draft.docx
+"i need to know how many words are in my story document, how can i do that?",wc -w story.txt
+can you provide the command to count the number of words in a specific file?,wc -w data.log
+words count report file,wc -w report.pdf
+screenshot area,screencapture -i capture.png
+screencapture -i selected region to file,screencapture -i region.png
+take an interactive screenshot and save it to ~/Desktop/my_shot.png,screencapture -i ~/Desktop/my_shot.png
+how do i screenshot just a part of my screen to a file?,screencapture -i part.png
+please provide the command to take a screenshot of a selected area and save it as a file,screencapture -i selected_area.png
+screenshot part screen save folder documents,screencapture -i ~/Documents/image.png
+screenshot with delay,screencapture -T 5 screenshot.png
+screencapture -T 10 save to desktop,screencapture -T 10 ~/Desktop/delayed_capture.png
+take a screenshot after 3 seconds and save it as my_capture.png,screencapture -T 3 my_capture.png
+"i want to take a picture of my screen but i need a few seconds to get ready, how do i do that?",screencapture -T 15 screen_grab.png
+"could you provide the command to take a screenshot after a 20-second delay, saving it to my Pictures folder?",screencapture -T 20 ~/Pictures/timed_screenshot.png
+screenshot delay 8 seconds save image,screencapture -T 8 image.png
+top user john.doe,top -user john.doe
+top -user flag for admin processes,top -user admin
+show top processes for user developer,top -user developer
+"how can i see what programs a specific user is running in the activity monitor, but in the terminal?",top -user jappleseed
+what is the terminal command to display only the processes owned by the user 'guest' in top?,top -user guest
+top show user sysop processes,top -user sysop
+cut fields 2 6,"cut -f 2,6 data.csv"
+"cut -f 2,6 from syslog","cut -f 2,6 /var/log/syslog"
+extract the second and sixth fields from users.txt,"cut -f 2,6 users.txt"
+how do i get just the second and sixth columns from my big data file?,"cut -f 2,6 large_data.tsv"
+can you show me the command to print fields 2 and 6 from a file named inventory.dat?,"cut -f 2,6 inventory.dat"
+cut file fields two six,"cut -f 2,6 report.txt"
+head 10 lines config,head -n 10 config.txt
+head -n 25 output from access_log,head -n 25 access_log
+display the first 50 lines of the main.log file,head -n 50 main.log
+how can i just see the top 15 lines of a document in the terminal?,head -n 15 document.txt
+can you show me the command to view the first 20 lines of a file named report.csv?,head -n 20 report.csv
+show 7 lines from data file,head -n 7 data.txt
+show current user processes,ps -u $(id -u) -F
+ps -F current user processes,ps -u $(id -u) -F
+list all processes for the current user in extra full format,ps -u $(id -u) -F
+how can i see a detailed list of all the programs i'm running right now?,ps -u $(id -u) -F
+what is the terminal command to display all processes belonging to the current user with full details?,ps -u $(id -u) -F
+show my processes full info,ps -u $(id -u) -F
+replace spaces with dashes in text,"echo ""my document name"" | tr "" "" ""-"""
+tr command to convert underscores to hyphens in a string,"echo ""report_data_2024"" | tr ""_"" ""-"""
+change all occurrences of a comma to a semicolon in the given phrase,"echo ""value1,value2,value3"" | tr "","" "";"""
+how do i change all the 'x' letters to 'z' in a sentence using the terminal?,"echo ""xylophone excellent example"" | tr ""x"" ""z"""
+can you provide the terminal command to replace all instances of a forward slash with a backslash in a path string?,"echo ""/usr/local/bin"" | tr ""/"" ""\\"""
+replace dot with dash in numbers,"echo ""10.20.30"" | tr ""."" ""-"""
+whois 1.1.1.1,whois 1.1.1.1
+whois lookup for dns server 208.67.222.222,whois 208.67.222.222
+get information for the IP address 192.0.2.1,whois 192.0.2.1
+how can i find out details about an internet address like 64.95.240.10?,whois 64.95.240.10
+what is the command to perform a whois lookup on the IP address 172.16.0.1?,whois 172.16.0.1
+ip address 104.244.42.1 info,whois 104.244.42.1
+diff files,diff --color=always file1.txt file2.txt
+diff --minimal with color for dotfiles,diff --minimal --color=always ~/.zshrc ~/.zshrc.bak
+compare the contents of main.py and main_refactor.py showing colored differences,diff --color=always main.py main_refactor.py
+how can i easily see what changed between my old and new config file?,diff --color=always settings.conf settings_new.conf
+what is the terminal command to show a colored comparison between two different versions of a markdown document?,diff --color=always project_notes_v1.md project_notes_v2.md
+compare two script files color diff,diff --color=always install.sh update.sh
+basename users folder,basename /Users/
+basename get last component of /Library/Application Support/,basename /Library/Application Support/
+display the directory name from /usr/local/bin,basename /usr/local/bin
+"i just want to see the name of the 'Documents' folder, not the whole path",basename ~/Documents
+can you show me the terminal command to get just the folder name from /var/log/apache2?,basename /var/log/apache2
+show folder name from /Applications/Utilities/,basename /Applications/Utilities/
+vim line numbers,"vim -c ""set nu"" document.txt"
+vim -c set nu option for script.sh,"vim -c ""set nu"" script.sh"
+open config.ini with line numbers displayed,"vim -c ""set nu"" config.ini"
+how do i make vim show the line numbers when i'm editing a file?,"vim -c ""set nu"" notes.md"
+please provide the terminal command to open report.log in vim with line numbers enabled,"vim -c ""set nu"" report.log"
+vim show lines numbers data file,"vim -c ""set nu"" data.csv"
+vim undo,"vim -c ""normal u"" document.txt"
+vim undo last change,"vim -c ""normal u"" config.yaml"
+undo the last action in vim on my notes.md file,"vim -c ""normal u"" notes.md"
+"i messed up in vim, how do i go back one step?","vim -c ""normal u"" script.py"
+what is the command to undo the previous action in vim for data.csv?,"vim -c ""normal u"" data.csv"
+vim undo edit file,"vim -c ""normal u"" report.md"
+more document,more document.txt
+more README.md view contents,more README.md
+open my bash profile using more,more ~/.bash_profile
+"i want to see what's inside that big system log file, but not open it fully",more system.log
+what is the terminal command to view the contents of a file named my_script.sh using 'more'?,more my_script.sh
+"open file config, use more",more config.conf
+zip documents,zip -r documents.zip ~/Documents
+zip -r myproject folder to archive.zip,zip -r archive.zip myproject/
+create a zip archive named backup.zip containing the Photos folder,zip -r backup.zip Photos/
+how can i put my vacation pictures and videos into one zip file called trip.zip?,zip -r trip.zip vacation_pictures/ vacation_videos/
+please provide the terminal command to create a compressed zip file named reports.zip from the monthly_reports directory,zip -r reports.zip monthly_reports/
+zip project files important.zip,zip -r important.zip project_files/ notes.txt
+restricted edit my_notes.txt,nano -R my_notes.txt
+nano restricted mode for zshrc,nano -R ~/.zshrc
+open the resolv.conf file in restricted mode,nano -R /etc/resolv.conf
+i want to open a text file for editing but not accidentally change other files,nano -R project.txt
+"what is the command to open a file with nano in restricted mode, for example a script file?",nano -R myscript.py
+restricted edit bash profile,nano -R ~/.bash_profile
+uptime version,uptime -V
+uptime --version flag output,uptime --version
+display the version of the uptime command,uptime -V
+how do i find out what version of the uptime program i'm running?,uptime --version
+could you please tell me the command to check the version of the uptime utility?,uptime -V
+uptime tool version check,uptime --version
+scp remote log to local,scp dev@server.com:/var/log/syslog .
+scp pull config.yaml from prod server to ~/Downloads,scp admin@prod.example.com:/etc/app/config.yaml ~/Downloads
+copy the database backup file from the remote server to my Desktop.,scp root@backup.network:/mnt/backups/db.sql ~/Desktop
+how do i get that important file from the server onto my computer in my projects folder?,scp user@192.168.1.50:~/important.txt ~/Projects
+can you give me the command to securely copy a file named 'report.pdf' from a remote host 'host.domain.com' to my local Documents folder?,scp john@host.domain.com:~/reports/report.pdf ~/Documents
+copy remote access log local temp dir,scp sysadmin@10.0.0.10:/var/log/apache/access.log /tmp
+last command status,echo $?
+echo $? check last exit code,echo $?
+show the exit status of the previous command,echo $?
+how can i tell if the last thing i typed in the terminal actually worked?,echo $?
+what terminal command reveals the exit status of the most recently run command?,echo $?
+last command status see,echo $?
+go to alice home,cd ~alice
+cd to bob's home directory,cd ~bob
+change directory to the admin user's home folder,cd ~admin
+how do i get into the guest account's main folder from here?,cd ~guest
+please tell me the command to navigate to the home directory of devuser,cd ~devuser
+go johndoe home folder,cd ~johndoe
+run ls no history, ls
+execute pwd bypass history, pwd
+run a whoami command without saving it to shell history, whoami
+how do i type a command but make sure it doesn't show up in my command list later?, echo 'private command'
+can you show me how to run a date command that won't be recorded in my terminal history?, date
+command not save history, hostname
+mail server google,nslookup -type=MX -debug google.com
+nslookup mx record apple with debug,nslookup -type=MX -debug apple.com
+find the mail server for microsoft.com with debug info,nslookup -type=MX -debug microsoft.com
+"i want to see the email server details for that website, like the mx record",nslookup -type=MX -debug yahoo.com
+could you please provide the command to check the mx records and full transaction for amazon.com?,nslookup -type=MX -debug amazon.com
+mail server lookup reddit debug,nslookup -type=MX -debug reddit.com
+ping google,ping google.com
+ping test apple server,ping apple.com
+ping the local router's default gateway,ping 192.168.1.1
+how can i check if my computer can reach my home server?,ping 192.168.0.10
+please provide the command to ping the cloudflare dns server,ping 1.1.1.1
+ping server work check connection,ping internal-server.local
+list brew packages,brew list
+brew list all formulae and casks,brew list
+show all installed homebrew packages,brew list
+how do i see everything i've installed with homebrew on my mac?,brew list
+what is the command to list all homebrew installations on macOS?,brew list
+brew installed packages list,brew list
+less log,less system.log
+less view file contents,less document.txt
+open the access log for interactive reading,less /var/log/apache2/access_log
+how can i look at a really big text file without it crashing my computer?,less huge_data.csv
+what is the terminal command to view the contents of a configuration file interactively?,less config.json
+less view error log,less error.log
+less search error,less /error
+less forward search for 'function_call',less /function_call
+search for the string 'warning' in the current less buffer,less /warning
+how do i find a specific word like 'failed' when i'm looking at a file with less?,less /failed
+what is the command to perform a forward search for 'configuration' while in less?,less /configuration
+less find 'permission denied' text,less /permission denied
+find photos,"fd ""photos"""
+fd for config.yml files,"fd ""config.yml"""
+recursively find .DS_Store files,"fd "".DS_Store"""
+how do i find all the report.pdf documents on my computer?,"fd ""report.pdf"""
+could you please give me the command to find files containing 'backup'?,"fd ""backup"""
+find files name invoice,"fd ""invoice"""
+find all pdfs in documents,"fd ""\\.pdf$"" ~/Documents"
+fd command locate all .plist files within the Library folder,"fd ""\\.plist$"" ~/Library"
+find all files containing 'backup' in the home directory,"fd ""backup"" ~"
+how do i find all the photos that have 'holiday' in their name in my pictures folder?,"fd ""holiday"" ~/Pictures"
+what is the terminal command to search for all files ending with .js in a specific project directory?,"fd ""\\.js$"" ~/Projects/my-app"
+find log file var log folder,"fd ""\\.log$"" /var/log"
+ssh to dev.example.com with dev_rsa key,ssh -i ~/.ssh/dev_rsa admin@dev.example.com
+"ssh -i flag for id_ed25519, user ubuntu to 192.168.1.100",ssh -i ~/.ssh/id_ed25519 ubuntu@192.168.1.100
+connect to prod-server.cloud as ec2-user using the client_key,ssh -i ~/.ssh/client_key ec2-user@prod-server.cloud
+how do i log into mywebsite.com as john using that special key file called my_server_key?,ssh -i ~/.ssh/my_server_key john@mywebsite.com
+what is the command to ssh into backup-host.net as root with the backup_id private key?,ssh -i ~/.ssh/backup_id root@backup-host.net
+ssh to test-machine with test_key as guest user,ssh -i ~/.ssh/test_key guest@test-machine
+unalias ll,unalias ll
+unalias remove gs alias,unalias gs
+remove the 'dev' alias,unalias dev
+"how do i get rid of an alias i made, like the 'cls' one?",unalias cls
+what is the command to delete an existing alias named 'mycd'?,unalias mycd
+delete alias 'edit',unalias edit
+alias ll,alias ll
+alias definition for gco,alias gco
+show the command for the cls alias,alias cls
+how can i see what the shortcut 'md' actually does in the terminal?,alias md
+could you please provide the terminal command to view the definition of the 'dotfiles' alias?,alias dotfiles
+alias update show command,alias update
+curl client cert key,curl -E user_cert.pem --key user_key.pem -k https://api.internal.com
+curl --cert mycert.crt --key mykey.key -k bypass ssl,curl -E mycert.crt --key mykey.key -k https://dev.example.com/data
+"make a curl request using my client.pem certificate and private_key.pem, ignoring SSL errors, to the authentication server",curl -E client.pem --key private_key.pem -k https://auth.server.com/login
+"i need to access a secure website but my certificate is self-signed, how do i use my cert and key files with curl and ignore the warning?",curl -E client_cert.pem --key client_key.pem -k https://localhost:8443
+"please provide the curl command to send a request with a certificate named identity.pem and its corresponding private key named identity.key, while bypassing SSL verification, to the secure endpoint",curl -E identity.pem --key identity.key -k https://secure.api.com/v1/status
+curl cert.pem key.key ignore ssl bad url,curl -E cert.pem --key key.key -k https://test.domain.local
+clear screen keep scroll,clear -x
+clear -x to reset view,clear -x
+clear the terminal screen without affecting scrollback,clear -x
+how do i clean up my terminal window but still be able to scroll up to see old stuff?,clear -x
+can you provide the command to clear the terminal screen while preserving the scrollback history?,clear -x
+"clear screen, scrollback keep",clear -x
+clear xterm,clear -T xterm
+clear -T flag set terminal type ansi,clear -T ansi
+clear the terminal screen using the vt100 type,clear -T vt100
+how do i clear my terminal but tell it i'm using screen?,clear -T screen
+"what is the command to clear the terminal, specifically for a tmux session?",clear -T tmux
+clear terminal type vt220,clear -T vt220
+count words document,wc -w document.txt
+wc -w count words in notes,wc -w notes.md
+count the words in the essay.txt file,wc -w essay.txt
+how do i see how many words are in my report file?,wc -w report.txt
+what is the terminal command to count the total words in a specific text file?,wc -w article.txt
+words count log file,wc -w server.log
+stage all changes,git add -A
+git add --all current modifications,git add --all
+"stage all modified, deleted, and untracked files for commit",git add -A
+how do i prepare everything I've done in git so it's ready to be committed?,git add --all
+"what is the git command to stage all changes in the current repository, including new and deleted files?",git add -A
+git add all files ready commit,git add --all
+gzip log,gzip access.log
+compress with gzip archive my_document,gzip my_document.txt
+compress the large_data.csv file,gzip large_data.csv
+how do i make my important_report smaller by zipping it?,gzip important_report.docx
+can you provide the command to compress a file named backup.sql using gzip?,gzip backup.sql
+compress project file current directory,gzip project_notes.md
+decompress document.txt.gz,gzip -d document.txt.gz
+gzip -d archive.tar.gz,gzip -d archive.tar.gz
+decompress the backup.sql.gz file,gzip -d backup.sql.gz
+how do i open my compressed photos.zip.gz file?,gzip -d photos.zip.gz
+can you provide the command to decompress logs.gz?,gzip -d logs.gz
+decompress data.csv.gz file,gzip -d data.csv.gz
+compress log fast,gzip -1 access.log > access.log.gz
+gzip -9 archive old data,gzip -9 old_data.tar > old_data.tar.gz
+compress the important_report.txt file with level 6 compression,gzip -6 important_report.txt > important_report.txt.gz
+how do i make my big file smaller but not super slow?,gzip -3 large_document.pdf > large_document.pdf.gz
+can you show me the command to compress a file named backup.sql with high compression?,gzip -7 backup.sql > backup.sql.gz
+compress download folder low level,gzip -2 ~/Downloads/archive.zip > ~/Downloads/archive.zip.gz
+tree full path no indent,tree -i -f
+tree -i -f output full paths,tree -i -f
+show the directory tree with full paths and no indentation lines,tree -i -f
+"how do i list all the files and folders with their complete location, but without those connecting lines?",tree -i -f
+can you provide the command to display the file system as a tree with full paths and no indentation?,tree -i -f
+tree show full path no lines,tree -i -f
+directory size tree view,tree -s -h --du
+tree -s -h --du for current directory,tree -s -h --du
+display all file and directory sizes in a tree structure,tree -s -h --du
+how can i see how big all the folders and files are in a visual way?,tree -s -h --du
+could you please provide the command to show a tree view of directory sizes in a human-readable format?,tree -s -h --du
+show folder size tree,tree -s -h --du
+search 'warning' in current folder,"grep -rI ""warning"" ."
+grep -rI for 'API_KEY' in project,"grep -rI ""API_KEY"" project/"
+"recursively search for 'import React' in the 'components' directory, ignoring binary files","grep -rI ""import React"" components/"
+how do i look for the phrase 'permission denied' everywhere in my system logs?,"grep -rI ""permission denied"" /var/log/"
+"what is the command to find all instances of 'user_id' within the 'database_scripts' folder, excluding binary files?","grep -rI ""user_id"" database_scripts/"
+find 'config' in files dotfiles folder,"grep -rI ""config"" ~/.dotfiles"
+directory sizes,du -ah .
+du -ah recursive human-readable for applications,du -ah /Applications
+list the human-readable sizes of all contents in my documents folder,du -ah ~/Documents
+how do i check how much space everything is taking up in my downloads folder?,du -ah ~/Downloads
+please provide the terminal command to display the human-readable sizes of all files and subdirectories within the current working directory.,du -ah .
+show disk usage home folder human readable,du -ah ~
+jpg sizes total,du -ch *.jpg
+du -ch on current dir jpgs,du -ch *.jpg
+show the human-readable size of all jpg files with a grand total,du -ch *.jpg
+"how can i see how much space all my picture files are taking up, and get a sum?",du -ch *.jpg
+"please provide the terminal command to list the human-readable sizes of all jpg files in the current directory, including a total.",du -ch *.jpg
+list all jpg file size total,du -ch *.jpg
+man ls,man ls
+display man page for grep,man grep
+show the manual page for the find command,man find
+how do i look up what the brew command does?,man brew
+can you show me the man page for the defaults command?,man defaults
+man page open command,man open
+man ls sections,man -f ls
+man --whatis grep command sections,man --whatis grep
+show the available man sections for the find command,man -f find
+how can i see a short description of what the cat command does in the man pages?,man -f cat
+can you tell me the terminal command to list the man page sections for 'open'?,man -f open
+man sudo whatis sections,man --whatis sudo
+man where ls,man -w ls
+man -w flag for grep location,man -w grep
+show the manpage location for the find command,man -w find
+i need to know where the help file for cat is stored on my computer,man -w cat
+can you tell me the terminal command to find the location of the manpage for ssh?,man -w ssh
+where manpage du command,man -w du
+extract archive,tar xvf archive.tar.gz
+tar xvf to extract backup,tar xvf backup.tar.bz2
+extract the project.tar file,tar xvf project.tar
+how do i open this compressed data file so i can see what's inside?,tar xvf data.tar.xz
+please provide the command to extract a tar.gz file located in my Documents folder,tar xvf ~/Documents/documents.tar.gz
+extract photos archive pictures folder,tar xvf ~/Pictures/photos.tar
+sudo list,sudo -ll
+sudo -ll allowed commands,sudo -ll
+list my allowed sudo commands,sudo -ll
+how can i see what commands i'm allowed to run with sudo?,sudo -ll
+can you show me the command to list my sudo permissions?,sudo -ll
+sudo commands allowed list,sudo -ll
+link report to desktop,ln ~/Documents/report.txt ~/Desktop/report_link.txt
+ln hard link for zshrc config,ln ~/.zshrc ~/zshrc_backup
+create a hard link for my data.csv file in the backups folder,ln ~/data.csv ~/Backups/data_link.csv
+how can i make a special copy of my important file that updates automatically if the original changes?,ln important_file.txt linked_important_file.txt
+please provide the terminal command to create a hard link for the file named 'notes.md' and call the link 'daily_notes' in the same directory.,ln notes.md daily_notes
+link photo file to new location,ln ~/Pictures/holiday_photo.jpg ~/Archive/holiday_photo_link.jpg
+second field current paths,find . -print0 | cut -z -d '/' -f 2
+cut -z -d '/' -f 2 on current dir files,find . -print0 | cut -z -d '/' -f 2
+extract the second path component for all items in the current directory,find . -print0 | cut -z -d '/' -f 2
+how do i get just the second part of all the file paths in this folder?,find . -print0 | cut -z -d '/' -f 2
+please provide the command to print the second field of zero-terminated paths using cut,find . -print0 | cut -z -d '/' -f 2
+show second field all file paths,find . -print0 | cut -z -d '/' -f 2
+lsof chrome,lsof -c Chrome
+lsof -c flag for safari,lsof -c Safari
+list all files opened by the Messages application,lsof -c Messages
+how can i find out what files my spotify app is using right now?,lsof -c Spotify
+what is the terminal command to view all files currently open by the Finder process?,lsof -c Finder
+show files open by vs code,lsof -c Code
+find chrome memory usage,ps -m | grep Chrome
+ps -m pipe grep for safari process,ps -m | grep Safari
+show processes sorted by memory usage and filter for spotify,ps -m | grep Spotify
+how do i check which slack process is using a lot of memory?,ps -m | grep Slack
+can you list all processes by memory and filter for the Xcode app?,ps -m | grep Xcode
+memory usage find process code,ps -m | grep Code
+count lines js files,find . -name '*.js' | xargs wc -l
+find py files xargs wc l total,find . -name '*.py' | xargs wc -l
+count all lines in html files in the current folder,find . -name '*.html' | xargs wc -l
+how can i see how many lines of text are in all my markdown notes?,find . -name '*.md' | xargs wc -l
+can you give me the command to count the total lines of code in all shell scripts in this directory?,find . -name '*.sh' | xargs wc -l
+count lines all css files project,find . -name '*.css' | xargs wc -l
+sort processes by pid,ps -m | sort -nk1
+ps -m output sort numeric by vsz ascending,ps -m | sort -nk3
+show all processes sorted by memory usage but then sort by command name alphabetically,ps -m | sort -k4
+"i want to see all the running programs, but i want them listed from smallest memory usage to largest",ps -m | sort -nk2
+how can i list processes by memory and then sort them by their process ID in descending order?,ps -m | sort -nrk1
+list processes sort virtual memory descending,ps -m | sort -nrk3
+copy all 'error' lines from app.log,grep 'error' app.log | pbcopy
+grep for 'function' in main.js and pbcopy output,grep 'function' main.js | pbcopy
+find lines containing 'TODO' in my development notes and copy them to the clipboard,grep 'TODO' dev_notes.txt | pbcopy
+how can i get all the lines with 'warning' from the server log file into my clipboard?,grep 'warning' server.log | pbcopy
+can you provide the command to extract and copy all 'import' statements from a python script?,grep 'import' script.py | pbcopy
+copy all lines with 'config' from settings file,grep 'config' settings.ini | pbcopy
+"find 'error' in access.log, get fields 2 and 6","grep ""error"" access.log | cut -f 2,6"
+"grep 'failed login' in auth.log | cut -f 2,6","grep ""failed login"" auth.log | cut -f 2,6"
+search for 'warning' in system.log and extract the second and sixth fields,"grep ""warning"" system.log | cut -f 2,6"
+i need to find lines with 'critical' in my app's log file and show just the second and sixth columns,"grep ""critical"" app.log | cut -f 2,6"
+how can i filter a data file for 'status: ok' and then display only the second and sixth columns?,"grep ""status: ok"" data.csv | cut -f 2,6"
+"find 'timeout' in server log, print field 2 and 6","grep ""timeout"" server.log | cut -f 2,6"
+generate uuid copy,uuidgen | pbcopy
+uuidgen pipe pbcopy for clipboard,uuidgen | pbcopy
+generate a new uuid and copy it to the clipboard,uuidgen | pbcopy
+how do i make a unique id and put it on my clipboard quickly?,uuidgen | pbcopy
+what is the command to generate a UUID and directly copy it to the clipboard?,uuidgen | pbcopy
+make unique id copy clipboard,uuidgen | pbcopy
+count brew packages,brew list | wc -l
+brew list pipe wc l count installed,brew list | wc -l
+count the total number of installed homebrew packages,brew list | wc -l
+how can i see how many apps i installed with brew?,brew list | wc -l
+can you tell me the command to count all my homebrew installations?,brew list | wc -l
+how many brew packages installed,brew list | wc -l
+count python files with 'error',"find . -name '*.py' | xargs grep ""error"" | wc -l"
+find go files xargs grep 'panic' wc -l,"find . -name '*.go' | xargs grep ""panic"" | wc -l"
+count lines containing 'TODO' in all markdown files,"find . -name '*.md' | xargs grep ""TODO"" | wc -l"
+how do i count how many places i wrote 'FIXME' in my javascript files?,"find . -name '*.js' | xargs grep ""FIXME"" | wc -l"
+what command can I use to count all occurrences of 'deprecated' in my swift files?,"find . -name '*.swift' | xargs grep ""deprecated"" | wc -l"
+count lines config files contain 'production',"find . -name '*.conf' | xargs grep ""production"" | wc -l"
+top memory processes,ps -m | sort -nrk 5 | head -n 11
+ps m sort nrk 5 head 10 highest memory,ps -m | sort -nrk 5 | head -n 11
+show the 5 processes consuming the most memory,ps -m | sort -nrk 5 | head -n 6
+how do i see which apps are using up all my mac's ram?,ps -m | sort -nrk 5 | head -n 11
+what is the command to list the top 15 memory-intensive processes on macOS?,ps -m | sort -nrk 5 | head -n 16
+list processes high memory use,ps -m | sort -nrk 5 | head -n 11
+unique errors system.log,"grep ""error"" system.log | sort | uniq"
+grep 'warning' app.log sort uniq,"grep ""warning"" app.log | sort | uniq"
+find all unique lines containing 'failed' in the server.log file,"grep ""failed"" server.log | sort | uniq"
+how can i get a list of all the different 'TODO' notes in my project's code.js file?,"grep ""TODO"" code.js | sort | uniq"
+what is the command to extract and list unique 'import' statements from a python file named main.py?,"grep ""import"" main.py | sort | uniq"
+show unique 'FIXME' comments my notes.md,"grep ""FIXME"" notes.md | sort | uniq"
+download page modify and find keyword,"curl https://www.apple.com > webpage.html && sed -i bak 's/Apple/Mac/g' webpage.html && grep ""MacBook"" webpage.html"
+curl json data redirect sed replace grep pattern,"curl https://api.github.com/repos/octocat/Spoon-Knife > repo_data.json && sed -i bak 's/Spoon-Knife/Fork-Spoon/g' repo_data.json && grep ""Fork-Spoon"" repo_data.json"
+"download a blog post, change all 'cloud' to 'serverless', then search for 'aws'","curl https://blog.example.com/post-1.html > blog_post.html && sed -i bak 's/cloud/serverless/g' blog_post.html && grep ""aws"" blog_post.html"
+"i want to download a text file, update some old names in it, and then check if a new name is there","curl https://raw.githubusercontent.com/user/repo/main/data.txt > downloaded_data.txt && sed -i bak 's/old_user/new_user/g' downloaded_data.txt && grep ""new_user"" downloaded_data.txt"
+"can you help me download a configuration file, replace specific port numbers, and then verify the change by searching for the new port?","curl https://config.domain.com/settings.conf > config_file.conf && sed -i bak 's/8080/9000/g' config_file.conf && grep ""9000"" config_file.conf"
+get html page change text then find word,"curl https://www.nasa.gov/news.html > news.html && sed -i bak 's/NASA/SpaceX/g' news.html && grep ""SpaceX"" news.html"
