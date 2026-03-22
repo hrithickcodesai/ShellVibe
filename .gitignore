@@ -225,3 +225,5 @@ data/raw/osx/*
 data/raw/common/*
 
 data/preprocessed/intermediate/*.csv
+runpod/*
+onnx_model/*

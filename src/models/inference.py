@@ -2,7 +2,7 @@ import argparse
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B"
+MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 SYSTEM_PROMPT = (
     "You are a helpful assistant that converts natural language instructions "
     "into shell commands. Output only the shell command, nothing else."
@@ -57,6 +57,9 @@ def predict(
             eos_token_id=im_end_id,
             pad_token_id=tokenizer.eos_token_id,
             use_cache=True,
+            # top_k=100,
+            # top_p=0.99,
+            # temperature=0.2,
         )
 
     new_tokens = output_ids[0][inputs["input_ids"].shape[-1] :]

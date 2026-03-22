@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B"
+MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 OUTPUT_DIR = "data/preprocessed"
 
 SPLITS = {

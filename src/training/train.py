@@ -16,10 +16,10 @@ load_dotenv()
 
 
 config = {
-    "model_id": "Qwen/Qwen2.5-Coder-0.5B",
-    "wandb_project": "qwen-coder-bash-sft",
+    "model_id": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+    "wandb_project": "qwen-inst-coder-bash-sft-instructions",
     "use_wandb": True,
-    "out_dir": "checkpoints",
+    "out_dir": "qwen-inst-checkpoints",
     "data_dir": "data/preprocessed",
     "batch_size": 64,
     "max_lr": 2e-5,
