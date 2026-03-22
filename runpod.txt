@@ -1,0 +1,2 @@
+Install stuff - ! pip install datasets levenshtein matplotlib python-dotenv seaborn torch tqdm transformers wandb wordcloud
+Start training - ! python3 -m src.training.train

@@ -1,305 +1,120 @@
+import json
 import argparse
-import csv
+import itertools
 import os
+import csv
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
-
-from google import genai
-from google.genai import types
-from pydantic import BaseModel
+from openai import OpenAI
 from dotenv import load_dotenv
 from tqdm import tqdm
+
+from src.data_processing.tiers import TIER1_LIST, COMBO_VARIATIONS, TIER2
 
 load_dotenv()
 
 INPUT_CSV = "data/preprocessed/intermediate/tldr_parsed.csv"
 OUTPUT_CSV = "data/preprocessed/intermediate/synthetic_combined.csv"
 
-client = genai.Client()
+MODEL = "z-ai/glm-4.7-flash"
 
+BASE_CATEGORIES = ["Lazy", "Power", "Direct", "Noob", "ChatGPT-style", "Broken English"]
 
-CURATED_PAIRS = [
-    # ── Process inspection ──────────────────────────────────────────────────
-    ("ps", "grep"),
-    ("ps", "awk"),
-    ("ps", "sort"),
-    ("ps", "head"),
-    ("ps", "wc"),
-    ("pgrep", "kill"),
-    ("lsof", "grep"),
-    ("top", "grep"),
-    # ── File search & preview ───────────────────────────────────────────────
-    ("find", "grep"),
-    ("find", "wc"),
-    ("find", "head"),
-    ("find", "rm"),
-    ("find", "cat"),
-    ("find", "sort"),
-    ("fd", "grep"),
-    ("fd", "wc"),
-    ("fd", "head"),
-    # ── File content processing ─────────────────────────────────────────────
-    ("cat", "grep"),
-    ("cat", "sort"),
-    ("cat", "uniq"),
-    ("cat", "wc"),
-    ("cat", "sed"),
-    ("cat", "awk"),
-    ("cat", "tr"),
-    ("cat", "cut"),
-    ("cat", "head"),
-    ("cat", "tail"),
-    ("cat", "less"),
-    ("cat", "more"),
-    ("cat", "pbcopy"),
-    # ── Grep combos ─────────────────────────────────────────────────────────
-    ("grep", "wc"),
-    ("grep", "sort"),
-    ("grep", "awk"),
-    ("grep", "cut"),
-    ("grep", "head"),
-    ("grep", "pbcopy"),
-    # ── Directory & disk ────────────────────────────────────────────────────
-    ("ls", "grep"),
-    ("ls", "sort"),
-    ("ls", "wc"),
-    ("ls", "head"),
-    ("ls", "pbcopy"),
-    ("du", "sort"),
-    ("du", "grep"),
-    ("du", "head"),
-    ("df", "grep"),
-    ("df", "awk"),
-    # ── History & shell ─────────────────────────────────────────────────────
-    ("history", "grep"),
-    ("history", "tail"),
-    ("history", "wc"),
-    ("history", "sort"),
-    ("history", "uniq"),
-    # ── Network ─────────────────────────────────────────────────────────────
-    ("netstat", "grep"),
-    ("ifconfig", "grep"),
-    ("curl", "grep"),
-    ("ping", "grep"),
-    ("whois", "grep"),
-    ("dig", "grep"),
-    ("nslookup", "grep"),
-    # ── Text utilities ──────────────────────────────────────────────────────
-    ("echo", "pbcopy"),
-    ("echo", "tr"),
-    ("echo", "sed"),
-    ("pbpaste", "grep"),
-    ("pbpaste", "wc"),
-    ("pbpaste", "sort"),
-    ("pbpaste", "sed"),
-    ("pbpaste", "awk"),
-    ("pbpaste", "tr"),
-    # ── Tail / log monitoring ───────────────────────────────────────────────
-    ("tail", "grep"),
-    ("tail", "wc"),
-    ("tail", "awk"),
-    ("tail", "pbcopy"),
-    # ── Clipboard helpers ───────────────────────────────────────────────────
-    ("pwd", "pbcopy"),
-    ("date", "pbcopy"),
-    ("uuidgen", "pbcopy"),
-    ("uuidgen", "tr"),
-    # ── Git ─────────────────────────────────────────────────────────────────
-    ("git", "grep"),
-    ("git", "awk"),
-    ("git", "wc"),
-    ("git", "head"),
-    ("git", "tail"),
-    ("git", "sort"),
-    # ── Brew ────────────────────────────────────────────────────────────────
-    ("brew", "grep"),
-    ("brew", "wc"),
-    ("brew", "sort"),
-    # ── Disk utilities ──────────────────────────────────────────────────────
-    ("diskutil", "grep"),
-    ("mdfind", "head"),
-    ("mdfind", "wc"),
-    ("mdfind", "grep"),
-    # ── Misc useful ─────────────────────────────────────────────────────────
-    ("wc", "awk"),
-    ("sort", "uniq"),
-    ("sort", "head"),
-    ("sort", "tail"),
-    ("uniq", "sort"),
-    ("uniq", "wc"),
-    ("curl", "sed"),
-    ("curl", "awk"),
-    ("curl", "wc"),
-    ("ssh", "grep"),
-    ("stat", "awk"),
-    ("stat", "grep"),
-    ("date", "echo"),
-    ("whoami", "echo"),
-    ("arch", "grep"),
-    ("sw_vers", "grep"),
-    ("defaults", "grep"),
-    ("launchctl", "grep"),
-]
+ACTIVE_COMBOS: list[str] = ["T1xT1", "T1xT2", "T2xT2"]
 
-CURATED_TRIPLETS = [
-    # ── The all-time classics ────────────────────────────────────────────────
-    ("cat", "sort", "uniq"),
-    ("cat", "grep", "wc"),
-    ("cat", "grep", "awk"),
-    ("cat", "grep", "head"),
-    ("cat", "grep", "tail"),
-    ("cat", "grep", "sort"),
-    ("cat", "sed", "grep"),
-    ("cat", "awk", "sort"),
-    ("cat", "sort", "head"),
-    ("cat", "cut", "sort"),
-    ("cat", "tr", "sort"),
-    ("cat", "tr", "wc"),
-    # ── Process pipelines ───────────────────────────────────────────────────
-    ("ps", "grep", "awk"),
-    ("ps", "grep", "wc"),
-    ("ps", "sort", "head"),
-    ("ps", "awk", "sort"),
-    ("lsof", "grep", "awk"),
-    ("lsof", "grep", "wc"),
-    # ── Find pipelines ──────────────────────────────────────────────────────
-    ("find", "grep", "wc"),
-    ("find", "grep", "head"),
-    ("find", "sort", "head"),
-    ("find", "wc", "awk"),
-    ("fd", "grep", "wc"),
-    ("fd", "sort", "head"),
-    # ── Disk & size ─────────────────────────────────────────────────────────
-    ("du", "sort", "head"),
-    ("du", "grep", "awk"),
-    ("ls", "sort", "head"),
-    ("ls", "grep", "wc"),
-    ("ls", "grep", "sort"),
-    # ── History ─────────────────────────────────────────────────────────────
-    ("history", "grep", "wc"),
-    ("history", "grep", "tail"),
-    ("history", "grep", "sort"),
-    ("history", "sort", "uniq"),
-    # ── Grep combos ─────────────────────────────────────────────────────────
-    ("grep", "sort", "uniq"),
-    ("grep", "awk", "sort"),
-    ("grep", "cut", "sort"),
-    ("grep", "grep", "wc"),  # double grep (filter, then filter again)
-    # ── Log tailing ─────────────────────────────────────────────────────────
-    ("tail", "grep", "awk"),
-    ("tail", "grep", "wc"),
-    ("tail", "grep", "pbcopy"),
-    # ── Network ─────────────────────────────────────────────────────────────
-    ("netstat", "grep", "awk"),
-    ("netstat", "grep", "wc"),
-    ("curl", "grep", "wc"),
-    ("curl", "sed", "grep"),
-    # ── Clipboard ───────────────────────────────────────────────────────────
-    ("pbpaste", "grep", "wc"),
-    ("pbpaste", "sort", "uniq"),
-    ("pbpaste", "sed", "pbcopy"),
-    ("pbpaste", "tr", "pbcopy"),
-    ("pbpaste", "grep", "pbcopy"),
-    # ── Git ─────────────────────────────────────────────────────────────────
-    ("git", "grep", "wc"),
-    ("git", "grep", "awk"),
-    ("git", "sort", "uniq"),
-    ("git", "awk", "sort"),
-    # ── Misc ────────────────────────────────────────────────────────────────
-    ("sort", "uniq", "wc"),
-    ("sort", "uniq", "sort"),
-    ("du", "sort", "tail"),
-    ("mdfind", "grep", "wc"),
-    ("sw_vers", "grep", "awk"),
-    ("defaults", "grep", "awk"),
-]
+RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "combination_response",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "is_valid_combination": {"type": "boolean"},
+                "combined_command": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                "combination_description": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}]
+                },
+                "variations": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "category": {"type": "string"},
+                                    "query": {"type": "string"},
+                                    "target_command": {"type": "string"},
+                                },
+                                "required": ["category", "query", "target_command"],
+                                "additionalProperties": False,
+                            },
+                        },
+                        {"type": "null"},
+                    ]
+                },
+            },
+            "required": [
+                "is_valid_combination",
+                "combined_command",
+                "combination_description",
+                "variations",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
 
+SYSTEM_INSTRUCTION = """
+You are an expert data generator for a Natural Language to macOS Terminal Command machine learning model.
 
-# ---------------------------------------------------------------------------
-# Pydantic models
-# ---------------------------------------------------------------------------
+Your job is to take 2, 3, or 4 simple macOS terminal commands and decide if they form a meaningful combined pipeline, then produce N natural language query variations.
 
-
-class Variation(BaseModel):
-    category: str
-    query: str
-    target_command: str
-
-
-class CombinationOutput(BaseModel):
-    is_valid_combination: bool
-    combined_command: Optional[str] = None
-    combination_description: Optional[str] = None
-    variations: Optional[list[Variation]] = None
-
-
-# ---------------------------------------------------------------------------
-# Prompts
-# ---------------------------------------------------------------------------
-
-SYSTEM_INSTRUCTION = """You are an expert data generator for a Natural Language to macOS Terminal Command machine learning model.
-
-Your job is to take 2 or 3 simple macOS terminal commands and produce a meaningful combined pipeline with 6 natural language query variations.
-
-VALIDITY RULES — mark is_valid_combination: false if ANY of these apply:
+---
+VALIDITY RULES -- mark is_valid_combination: false (all other fields null) if ANY apply:
 - The combination produces no useful real-world output
-- The output of the first command is not a useful input to the next
+- The output of a command is not a useful input to the next
 - A real macOS user would never actually chain these together
 - The result would be technically broken or nonsensical
 
-COMBINATION TECHNIQUES (use whichever fits the commands):
-- Pipe:                cmd1 | cmd2
+---
+COMBINATION TECHNIQUES (use whichever fits):
+- Pipe:                cmd1 | cmd2 | cmd3
 - Sequential:          cmd1 && cmd2
-- Redirect to file:    cmd1 > file.txt
-- Append to file:      cmd1 >> file.txt
+- Redirect:            cmd1 > file.txt  /  cmd1 >> file.txt
 - xargs:               cmd1 | xargs cmd2
 - Subshell:            cmd2 $(cmd1)
-- Process substitution, background jobs, etc.
-
-QUERY GENERATION RULES (only when is_valid_combination: true):
-1. Case: Every query must start with a lowercase letter. Never capitalise the first word.
-2. Style: Write queries in a natural length that fits each category. Do NOT pad to hit a word count.
-3. Concrete values: Replace ALL placeholders (path/to/file, process_name, n, username, pattern, etc.) with realistic macOS-specific values.
-4. No magic information (CRITICAL — read carefully):
-   - target_command must ONLY contain a file, path, directory, or app name if that EXACT value appears in the query.
-   - Query names a specific file/path/app → use it verbatim in target_command.
-   - Query is conceptually specific but vague on path (e.g. "my zshrc") → use the well-known default (e.g. ~/.zshrc).
-   - Query is fully vague (no file mentioned) → use a simple generic filename in the current directory (e.g. file.txt, output.log, data.csv). NEVER invent ~/Documents/, ~/Downloads/, ~/Desktop/, or any subdirectory the user did not mention.
-   - NEVER introduce a path, directory, or filename that the user did not reference in any way.
-5. Diversity: All 6 variations must use DIFFERENT concrete values where applicable. No value may repeat.
-6. combination_description: one plain English sentence describing what the full pipeline does.
-7. Accuracy: target_command must be a valid, directly executable macOS shell command."""
-
-
-def get_combination_prompt(commands: list[dict]) -> str:
-    command_block = "\n".join(
-        [
-            f"Tool {i + 1}: {c['tool']}\n  Description: {c['desc']}\n  Command: {c['cmd']}"
-            for i, c in enumerate(commands)
-        ]
-    )
-    num = len(commands)
-
-    return f"""You are given {num} macOS terminal commands. Decide if they can be meaningfully combined into a single pipeline or chain that a real user would actually run.
-
-{command_block}
-
-If NOT a valid combination → return: {{"is_valid_combination": false}}
-
-If valid → return a full object with is_valid_combination, combined_command, combination_description, and exactly 6 variations.
-
-Categories:
-1. "Lazy"          — ultra-short keywords, no verb, as few words as natural
-2. "Power"         — CLI-flavored, may reference tool name or flag vocabulary
-3. "Direct"        — one plain clear English sentence, no filler or politeness
-4. "Noob"          — casual, conversational, describes goal not the tool
-5. "ChatGPT-style" — polite instruction or question addressed to an AI
-6. "Broken English"— grammatically incorrect, articles/verbs dropped
-
-Every query must begin with a lowercase letter.
 
 ---
-### EXAMPLE 1 — ps | grep
+QUERY GENERATION RULES (only when is_valid_combination: true):
+1. Every query must start with a lowercase letter.
+2. Write queries at a natural length for each category -- no padding.
+3. Replace ALL placeholders with realistic macOS-specific values.
+4. No magic information: target_command may only contain a file/path/app if it appears in the query.
+   - Specific file/path mentioned -> use it verbatim.
+   - Conceptually specific but vague (e.g. "my zshrc") -> use default (e.g. ~/.zshrc).
+   - Fully vague -> use a simple generic name (e.g. file.txt). Never invent ~/Documents/ etc.
+5. All variations must use DIFFERENT concrete values -- no repeats.
+6. combination_description: one plain English sentence.
+7. target_command must be a valid, directly executable macOS shell command.
+8. NO COMMAND NAME LEAKAGE: "Direct", "Noob", "ChatGPT-style", and "Broken English" queries
+   MUST NOT contain any command or tool names (e.g. awk, grep, bat, cat, sed, find, jq ...).
+   Describe only the desired behaviour or outcome in plain language.
+   Only "Lazy" and "Power" may reference command/tool names.
+
+---
+Category descriptions:
+- "Lazy"           -- ultra-short keywords; MAY use command names as terse shorthand
+- "Power"          -- CLI-flavored; MAY reference tool names or flag vocabulary
+- "Direct"         -- one plain clear English sentence; NO command names allowed
+- "Noob"           -- casual, conversational, describes goal not the tool; NO command names allowed
+- "ChatGPT-style"  -- polite instruction or question addressed to an AI; NO command names allowed
+- "Broken English" -- grammatically incorrect, articles/verbs dropped; NO command names allowed
+
+---
+EXAMPLES
+
+### EXAMPLE 1 -- valid (ps | grep)
 
 Input:
 Tool 1: ps
@@ -310,117 +125,21 @@ Tool 2: grep
   Command: grep search_pattern
 
 Output:
-{{
+{
   "is_valid_combination": true,
   "combined_command": "ps aux | grep process_name",
   "combination_description": "list all running processes and filter results by name",
   "variations": [
-    {{"category": "Lazy", "query": "find chrome process", "target_command": "ps aux | grep Chrome"}},
-    {{"category": "Power", "query": "ps aux pipe grep for process name", "target_command": "ps aux | grep Safari"}},
-    {{"category": "Direct", "query": "show all running processes and filter for docker", "target_command": "ps aux | grep Docker"}},
-    {{"category": "Noob", "query": "how do i check if spotify is actually running in the background right now?", "target_command": "ps aux | grep Spotify"}},
-    {{"category": "ChatGPT-style", "query": "what command lists all processes and filters for a specific app like slack?", "target_command": "ps aux | grep Slack"}},
-    {{"category": "Broken English", "query": "find discord running process", "target_command": "ps aux | grep Discord"}}
+    {"category": "Lazy",           "query": "ps grep chrome",                                                             "target_command": "ps aux | grep Chrome"},
+    {"category": "Power",          "query": "list all processes and pipe output to filter by name",                       "target_command": "ps aux | grep Safari"},
+    {"category": "Direct",         "query": "show all running processes and filter for docker",                           "target_command": "ps aux | grep Docker"},
+    {"category": "Noob",           "query": "how do i check if spotify is actually running in the background right now?", "target_command": "ps aux | grep Spotify"},
+    {"category": "ChatGPT-style",  "query": "what is the command to list all running apps and narrow it down to slack?",  "target_command": "ps aux | grep Slack"},
+    {"category": "Broken English", "query": "show running discord background",                                            "target_command": "ps aux | grep Discord"}
   ]
-}}
+}
 
-Note: No file paths here — app names come directly from each query. Never invent paths for process-based commands.
-
----
-### EXAMPLE 2 — cat | sort | uniq
-
-Input:
-Tool 1: cat
-  Description: Print the contents of a file
-  Command: cat path/to/file
-Tool 2: sort
-  Description: Sort lines of a file
-  Command: sort path/to/file
-Tool 3: uniq
-  Description: Remove duplicate lines from sorted input
-  Command: uniq
-
-Output:
-{{
-  "is_valid_combination": true,
-  "combined_command": "cat path/to/file | sort | uniq",
-  "combination_description": "print a file's contents, sort the lines, and remove duplicates",
-  "variations": [
-    {{"category": "Lazy", "query": "deduplicate words.txt", "target_command": "cat words.txt | sort | uniq"}},
-    {{"category": "Power", "query": "cat pipe sort pipe uniq deduplicate lines", "target_command": "cat names.txt | sort | uniq"}},
-    {{"category": "Direct", "query": "remove duplicate lines from ips.txt and sort them", "target_command": "cat ips.txt | sort | uniq"}},
-    {{"category": "Noob", "query": "i have a text file with loads of repeated lines, how do i get just the unique ones?", "target_command": "cat file.txt | sort | uniq"}},
-    {{"category": "ChatGPT-style", "query": "how do i print only the unique lines from a file using the terminal?", "target_command": "cat data.txt | sort | uniq"}},
-    {{"category": "Broken English", "query": "remove duplicate lines file", "target_command": "cat list.txt | sort | uniq"}}
-  ]
-}}
-
-Note: "deduplicate words.txt" → query names words.txt → use it. "i have a text file" → vague → bare file.txt in current dir. NEVER use ~/Documents/file.txt.
-
----
-### EXAMPLE 3 — du | sort | head  (find largest files)
-
-Input:
-Tool 1: du
-  Description: Estimate file space usage for a directory
-  Command: du -sh path/to/directory
-Tool 2: sort
-  Description: Sort lines numerically
-  Command: sort -rh
-Tool 3: head
-  Description: Output the first n lines
-  Command: head -n n
-
-Output:
-{{
-  "is_valid_combination": true,
-  "combined_command": "du -sh * | sort -rh | head -n 10",
-  "combination_description": "find the largest files or directories in the current location",
-  "variations": [
-    {{"category": "Lazy", "query": "largest files here", "target_command": "du -sh * | sort -rh | head -n 10"}},
-    {{"category": "Power", "query": "du sort rh head top 10 biggest", "target_command": "du -sh * | sort -rh | head -n 10"}},
-    {{"category": "Direct", "query": "show the 10 largest items in the current directory", "target_command": "du -sh * | sort -rh | head -n 10"}},
-    {{"category": "Noob", "query": "my disk is almost full, how do i find what is taking up the most space here?", "target_command": "du -sh * | sort -rh | head -n 10"}},
-    {{"category": "ChatGPT-style", "query": "what command shows me the biggest files and folders in my current directory?", "target_command": "du -sh * | sort -rh | head -n 10"}},
-    {{"category": "Broken English", "query": "show big files folder sort", "target_command": "du -sh * | sort -rh | head -n 10"}}
-  ]
-}}
-
-Note: This pipeline produces the same command regardless of query because it acts on the current directory (*) — no user-supplied filename needed.
-
----
-### EXAMPLE 4 — find | grep | wc  (count matching files)
-
-Input:
-Tool 1: find
-  Description: Find files matching a condition
-  Command: find path/to/directory -name 'pattern'
-Tool 2: grep
-  Description: Filter lines matching a pattern
-  Command: grep search_pattern
-Tool 3: wc
-  Description: Count lines, words, or characters
-  Command: wc -l
-
-Output:
-{{
-  "is_valid_combination": true,
-  "combined_command": "find . -name '*.ext' | grep pattern | wc -l",
-  "combination_description": "count files matching a name pattern that also contain a specific string",
-  "variations": [
-    {{"category": "Lazy", "query": "count python test files", "target_command": "find . -name '*.py' | grep test | wc -l"}},
-    {{"category": "Power", "query": "find py files grep test wc count", "target_command": "find . -name '*.py' | grep test | wc -l"}},
-    {{"category": "Direct", "query": "count how many javascript files contain the word component", "target_command": "find . -name '*.js' | grep component | wc -l"}},
-    {{"category": "Noob", "query": "how many config files do i have in this project that mention production?", "target_command": "find . -name '*.conf' | grep production | wc -l"}},
-    {{"category": "ChatGPT-style", "query": "how do i count all markdown files that have readme in their name?", "target_command": "find . -name '*.md' | grep README | wc -l"}},
-    {{"category": "Broken English", "query": "count log files contain error", "target_command": "find . -name '*.log' | grep error | wc -l"}}
-  ]
-}}
-
-Note: All queries are vague about location → all paths use "." (current directory). File types come from each query's context, NOT invented out of nowhere.
-
----
-### EXAMPLE 5 — invalid combination
+### EXAMPLE 2 -- invalid
 
 Input:
 Tool 1: uptime
@@ -431,63 +150,74 @@ Tool 2: screencapture
   Command: screencapture path/to/file.png
 
 Output:
-{{"is_valid_combination": false}}
-
-Note: These two commands are unrelated. Piping uptime into screencapture produces nothing meaningful.
-
----
-### YOUR TASK
-
-{command_block}
-"""
+{"is_valid_combination": false, "combined_command": null, "combination_description": null, "variations": null}
+""".strip()
 
 
-# ---------------------------------------------------------------------------
-# CSV helpers
-# ---------------------------------------------------------------------------
+CACHED_PREFIX: list[dict] = [
+    {
+        "role": "system",
+        "content": [
+            {
+                "type": "text",
+                "text": SYSTEM_INSTRUCTION,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
+    }
+]
+
+
+def _build_category_list(n_variations: int) -> str:
+    categories = [BASE_CATEGORIES[i % 6] for i in range(n_variations)]
+    return "\n".join(f'{i + 1}. "{cat}"' for i, cat in enumerate(categories))
+
+
+def get_combination_prompt(commands: list[dict], n_variations: int) -> str:
+    command_block = "\n".join(
+        f"Tool {i + 1}: {c['tool']}\n  Description: {c['desc']}\n  Command: {c['cmd']}"
+        for i, c in enumerate(commands)
+    )
+    category_list = _build_category_list(n_variations)
+    extra_note = (
+        " Produce fresh, distinct examples even when the same category appears more than once."
+        if n_variations > 6
+        else ""
+    )
+    return (
+        f"{command_block}\n\n"
+        f"Produce exactly {n_variations} variations if valid.{extra_note}\n\n"
+        f"Categories:\n{category_list}"
+    )
+
+
+def make_client() -> OpenAI:
+    return OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+    )
+
+
+MANDATORY_COLUMNS = ["input_nl", "target_command", "category", "tier"]
 
 
 def load_tldr_rows(csv_path: str) -> dict[str, list[dict]]:
-    """
-    Returns a dict mapping tool name → list of row dicts.
-    Each row has keys: tool, desc, cmd
-    """
-    tool_map: dict[str, list[dict]] = {}
-    with open(csv_path, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            name = row["Name"]
-            entry = {"tool": name, "desc": row["English"], "cmd": row["Command"]}
-            tool_map.setdefault(name, []).append(entry)
-    return tool_map
+    df = pd.read_csv(csv_path, usecols=["Name", "English", "Command"])
+    df = df.rename(columns={"Name": "tool", "English": "desc", "Command": "cmd"})
+    return {tool: grp.to_dict("records") for tool, grp in df.groupby("tool")}
 
 
 def pick_best_row(rows: list[dict]) -> dict:
-    """
-    Pick the most pipeable/generic command for a tool.
-    Preference order:
-      1. No pipe already in the command
-      2. No sudo prefix (avoid permission noise in combos)
-      3. Shortest command string (most generic)
-    """
     candidates = [r for r in rows if "|" not in r["cmd"]]
     if not candidates:
         candidates = rows
-
     no_sudo = [r for r in candidates if not r["cmd"].strip().startswith("sudo")]
     if no_sudo:
         candidates = no_sudo
-
     return min(candidates, key=lambda r: len(r["cmd"]))
 
 
-def resolve_combo(
-    tools: tuple, tool_map: dict[str, list[dict]]
-) -> Optional[list[dict]]:
-    """
-    Resolve a tuple of tool names to a list of best-row dicts.
-    Returns None if any tool is missing from the CSV.
-    """
+def resolve_combo(tools: tuple, tool_map: dict[str, list[dict]]) -> list[dict] | None:
     result = []
     for tool in tools:
         if tool not in tool_map:
@@ -496,142 +226,187 @@ def resolve_combo(
     return result
 
 
-# ---------------------------------------------------------------------------
-# Generation
-# ---------------------------------------------------------------------------
+def write_row(writer: csv.DictWriter, row: dict) -> None:
+    """Write a single row; missing mandatory columns raise immediately."""
+    for col in MANDATORY_COLUMNS:
+        if not row.get(col):
+            raise ValueError(f"Missing mandatory column '{col}' in row: {row}")
+    writer.writerow(row)
 
 
 def process_combo(
-    commands: list[dict], model: str, temperature: float, top_p: float, top_k: int
+    client: OpenAI,
+    commands: list[dict],
+    combo_type: str,
+    model: str,
+    temperature: float,
+    n_variations: int,
 ) -> list[dict]:
-    """Call the LLM for one combination; return list of output rows."""
-    prompt = get_combination_prompt(commands)
+    prompt = get_combination_prompt(commands, n_variations)
     try:
-        response = client.models.generate_content(
+        response = client.chat.completions.create(
             model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                response_mime_type="application/json",
-                response_schema=CombinationOutput,
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
-            ),
+            messages=CACHED_PREFIX + [{"role": "user", "content": prompt}],
+            temperature=temperature,
+            response_format=RESPONSE_FORMAT,
+            extra_body={"reasoning": {"effort": "none", "enable": False}},
         )
-        result: CombinationOutput = response.parsed
+        content = (response.choices[0].message.content or "").strip()
+        result = json.loads(content)
     except Exception as e:
         tqdm.write(f"[!] Error for {[c['tool'] for c in commands]}: {e}")
         return []
 
-    if not result.is_valid_combination or not result.variations:
+    if not result.get("is_valid_combination") or not result.get("variations"):
         return []
 
     source_tools = "+".join(c["tool"] for c in commands)
-    source_cmds = " | ".join(c["cmd"] for c in commands)
-
     rows = []
-    for var in result.variations:
+    for var in result["variations"]:
         rows.append(
             {
+                "tier": combo_type,
                 "source_tools": source_tools,
-                "source_commands": source_cmds,
-                "combined_command_template": result.combined_command,
-                "combination_description": result.combination_description,
-                "category": var.category,
-                "input_nl": var.query,
-                "output_command": var.target_command,
+                "source_commands": " | ".join(c["cmd"] for c in commands),
+                "combined_command_template": result.get("combined_command", ""),
+                "combination_description": result.get("combination_description", ""),
+                "is_valid_combination": True,
+                "category": var["category"],
+                "input_nl": var["query"],
+                "target_command": var["target_command"],
             }
         )
     return rows
 
 
+ALL_COLUMNS = [
+    "tier",
+    "source_tools",
+    "source_commands",
+    "combined_command_template",
+    "combination_description",
+    "is_valid_combination",
+    "category",
+    "input_nl",
+    "target_command",
+]
+
+
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="gemini-2.5-flash")
+    parser = argparse.ArgumentParser(
+        description="Combination generator -- T1xT1 pairs by default."
+    )
+    parser.add_argument("--model", default=MODEL)
     parser.add_argument("--temp", type=float, default=0.7)
-    parser.add_argument("--top-p", type=float, default=0.95)
-    parser.add_argument("--top-k", type=int, default=40)
     parser.add_argument("--workers", type=int, default=8)
-    parser.add_argument("--limit", type=int, default=None)  # ← no backslash
+    parser.add_argument(
+        "--limit", type=int, default=None, help="Cap total combinations."
+    )
     args = parser.parse_args()
 
     if not os.path.exists(INPUT_CSV):
         print(f"Error: Could not find {INPUT_CSV}")
         return
 
+    client = make_client()
     tool_map = load_tldr_rows(INPUT_CSV)
     print(
         f"Loaded {sum(len(v) for v in tool_map.values())} rows across {len(tool_map)} tools."
     )
 
-    # Resolve all curated combos against the actual CSV
-    all_combos: list[list[dict]] = []
-    skipped_missing = []
+    # Build combo list
+    pending: list[tuple[tuple, str]] = []
+    if "T1xT1" in ACTIVE_COMBOS:
+        for pair in itertools.combinations(TIER1_LIST, 2):
+            pending.append((pair, "T1xT1"))
 
-    for combo in CURATED_PAIRS + CURATED_TRIPLETS:
-        resolved = resolve_combo(combo, tool_map)
+    if "T1xT2" in ACTIVE_COMBOS:
+        for t1 in TIER1_LIST:
+            for t2 in TIER2:
+                pending.append(((t1, t2), "T1xT2"))
+
+    if "T2xT2" in ACTIVE_COMBOS:
+        for pair in itertools.combinations(TIER2, 2):
+            pending.append((pair, "T2xT2"))
+
+    print(f"Generated {len(pending)} total combination")
+
+    # Resolve tools against CSV
+    resolved_combos: list[tuple[list[dict], str]] = []
+    skipped: list[tuple] = []
+    for tools_tuple, combo_type in pending:
+        resolved = resolve_combo(tools_tuple, tool_map)
         if resolved is None:
-            skipped_missing.append(combo)
+            skipped.append(tools_tuple)
         else:
-            all_combos.append(resolved)
+            resolved_combos.append((resolved, combo_type))
 
-    if args.limit:
-        all_combos = all_combos[: args.limit]
-
-    if skipped_missing:
+    if skipped:
         print(
-            f"Skipped {len(skipped_missing)} combos (tool not found in CSV): {skipped_missing}"
+            f"Skipped {len(skipped)} combos (tool not in CSV): "
+            + ", ".join("+".join(t) for t in skipped[:10])
+            + (" ..." if len(skipped) > 10 else "")
         )
 
-    print(
-        f"Resolved {len(all_combos)} combinations ({len(CURATED_PAIRS)} pairs + {len(CURATED_TRIPLETS)} triplets)."
-    )
-    print(f"Starting generation with {args.workers} workers...\n")
+    if args.limit:
+        resolved_combos = resolved_combos[: args.limit]
+
+    type_counts: dict[str, int] = {}
+    for _, combo_type in resolved_combos:
+        type_counts[combo_type] = type_counts.get(combo_type, 0) + 1
+
+    print("\nCombo breakdown:")
+    for k, v in type_counts.items():
+        n_var = COMBO_VARIATIONS[k]
+        print(f"  {k:20s}: {v:4d} combos x {n_var} variations = ~{v * n_var} rows")
+    print(f"  {'TOTAL':20s}: {len(resolved_combos)} combos")
+    print(f"\nStarting generation with {args.workers} workers...\n")
 
     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
-    results = []
+
+    total_rows = 0
     valid_count = 0
 
-    with ThreadPoolExecutor(max_workers=args.workers) as executor:
-        futures = {
-            executor.submit(
-                process_combo, combo, args.model, args.temp, args.top_p, args.top_k
-            ): combo
-            for combo in all_combos
-        }
+    with open(OUTPUT_CSV, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=ALL_COLUMNS)
+        if os.path.getsize(OUTPUT_CSV) == 0:
+            writer.writeheader()
 
-        with tqdm(
-            as_completed(futures), total=len(futures), desc="Generating combinations"
-        ) as pbar:
-            for future in pbar:
-                rows = future.result()
-                if rows:
-                    results.extend(rows)
-                    valid_count += 1
-                pbar.set_postfix(valid=valid_count, rows=len(results))
+        with ThreadPoolExecutor(max_workers=args.workers) as executor:
+            futures = {
+                executor.submit(
+                    process_combo,
+                    client,
+                    commands,
+                    combo_type,
+                    args.model,
+                    args.temp,
+                    COMBO_VARIATIONS[combo_type],
+                ): combo_type
+                for commands, combo_type in resolved_combos
+            }
 
-    fieldnames = [
-        "source_tools",
-        "source_commands",
-        "combined_command_template",
-        "combination_description",
-        "category",
-        "input_nl",
-        "output_command",
-    ]
+            with tqdm(
+                as_completed(futures),
+                total=len(futures),
+                desc="Generating combinations",
+            ) as pbar:
+                for future in pbar:
+                    rows = future.result()
+                    for row in rows:
+                        write_row(writer, row)
+                        f.flush()
+                    if rows:
+                        valid_count += 1
+                        total_rows += len(rows)
+                    pbar.set_postfix(valid=valid_count, rows=total_rows)
 
-    with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(results)
-
-    rejected = len(all_combos) - valid_count
-    print(f"\n{'=' * 50}")
+    rejected = len(resolved_combos) - valid_count
+    print(f"\n{'=' * 60}")
     print("Done!")
-    print(f"  Combinations attempted : {len(all_combos)}")
+    print(f"  Combinations attempted : {len(resolved_combos)}")
     print(f"  Valid (LLM accepted)   : {valid_count}  ({rejected} rejected)")
-    print(f"  Rows generated         : {len(results)}")
+    print(f"  Rows generated         : {total_rows}")
     print(f"  Saved to               : {OUTPUT_CSV}")
 
 

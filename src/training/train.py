@@ -79,6 +79,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
     total_loss = 0.0
     total_edit_dist = 0.0
     num_gen_samples = 0
+    total_samples = 0
 
     examples_to_print = []
 
@@ -96,16 +97,26 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
         else nullcontext()
     )
 
-    for batch in dataloader:
+    num_eval_batches = len(dataloader)
+    gen_batch_indices = set(
+        random.sample(range(num_eval_batches), min(8, num_eval_batches))
+    )
+
+    for batch_idx, batch in enumerate(dataloader):
         input_ids = batch["input_ids"].to(device)
         labels = batch["labels"].to(device)
         attention_mask = batch["attention_mask"].to(device)
+        batch_size = input_ids.size(0)
 
         with autocast_ctx:
             outputs = model(
                 input_ids=input_ids, attention_mask=attention_mask, labels=labels
             )
-        total_loss += outputs.loss.item()
+        total_loss += outputs.loss.item() * batch_size
+        total_samples += batch_size
+
+        if batch_idx not in gen_batch_indices:
+            continue
 
         prompt_only_ids = []
         target_strings = []
@@ -163,7 +174,7 @@ def evaluate(model, dataloader, tokenizer, device, device_type, dtype, pad_id):
     tokenizer.padding_side = original_padding_side
     model.train()
 
-    avg_loss = total_loss / len(dataloader)
+    avg_loss = total_loss / total_samples if total_samples > 0 else 0.0
     avg_edit_dist = total_edit_dist / num_gen_samples if num_gen_samples > 0 else 0.0
 
     print("\n" + "=" * 60)
@@ -255,6 +266,7 @@ def main():
         collate_fn=collator,
         num_workers=num_workers,
         pin_memory=device_type == "cuda",
+        persistent_workers=num_workers > 0,
     )
     val_loader = DataLoader(
         val_dataset,
