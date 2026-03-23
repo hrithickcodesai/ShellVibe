@@ -1,27 +1,58 @@
 PYTHON ?= uv run python
 PYTHON_FILES = src
 CHECKPOINT ?= checkpoints/best_edit_distance.pt
+MODEL_ID  ?= hf-models/qwen-3b-inst
+CKPT_STEM  = $(basename $(notdir $(CHECKPOINT)))
+HF_DIR    ?= hf-models/$(CKPT_STEM)
+GGUF_OUT  ?= gguf-models/$(CKPT_STEM).gguf
 
-.PHONY: help clean format prepare train inference inference-interactive preprocess-tldr generate-data split-data generate-singles-v2 generate-combinations-v2 generate-v2 generate-v2-1b
+.PHONY: help format preprocess-tldr export-hf export-gguf convert-all inference-gguf inference inference-interactive
+
+GGUF ?= gguf-models/$(CKPT_STEM).gguf
+INSTRUCTION ?=
 
 help:
 	@echo "Available commands:"
-	@echo "  make format                          - Format code and sort imports (via Ruff)"
-	@echo "  make clean                           - Remove python cache, ruff cache, and build artifacts"
-	@echo "  make preprocess-tldr                 - Parse TLDR markdown files to CSV"
-	@echo "  make generate-data                   - Generate single-command synthetic data using LLM (v1, 6 variations)"
-	@echo "  make split-data                      - Split combined data into train/test CSVs"
-	@echo "  make prepare                         - Tokenize dataset (bin-packing) and write .bin files"
-	@echo "  make train                           - Run SFT training"
-	@echo "  make inference INSTRUCTION='...'     - Run single inference with best checkpoint"
-	@echo "  make inference-interactive           - Start interactive inference shell"
+	@echo "  make format                                      - Format code and sort imports (via Ruff)"
+	@echo "  make preprocess-tldr                             - Parse TLDR markdown files to CSV"
 	@echo ""
-	@echo "  make generate-singles-v2             - v2: generate per-tier singles (T1=12, T2=8, T3=6 variations)"
-	@echo "  make generate-combinations-v2        - v2: generate combinations (0.5b scale)"
-	@echo "  make generate-v2                     - v2 full pipeline for 0.5b target (preprocess → singles → combos → split → prepare)"
-	@echo "  make generate-v2-1b                  - v2 full pipeline for 1b target"
-	@echo ""
-	@echo "  Override checkpoint: make inference CHECKPOINT=checkpoints/last.pt INSTRUCTION='...'"
+	@echo "  make export-hf   [CHECKPOINT=...] [MODEL_ID=...]  - Export .pt → HuggingFace (hf-models/<name>/)"
+	@echo "  make export-gguf [HF_DIR=...]                    - Convert HF model → GGUF (gguf-models/<name>.gguf)"
+	@echo "  make convert-all [MODEL_ID=...]                  - Run full pipeline for all checkpoints/*.pt"
+	@echo "  make inference-gguf GGUF=<path> [INSTRUCTION=...]  - Run GGUF inference (interactive if no INSTRUCTION)"
+	@echo "  make inference [INSTRUCTION=...]                  - Run .pt inference (interactive if no INSTRUCTION)"
+
+inference:
+	$(PYTHON) src/scripts/inference.py \
+		--checkpoint $(CHECKPOINT) \
+		$(if $(INSTRUCTION),--instruction "$(INSTRUCTION)")
+
+inference-interactive:
+	$(PYTHON) src/scripts/inference.py --checkpoint $(CHECKPOINT)
+
+inference-gguf:
+	$(PYTHON) src/scripts/inference-gguf.py \
+		--model_path $(GGUF) \
+		$(if $(INSTRUCTION),--instruction "$(INSTRUCTION)")
+
+export-hf:
+	$(PYTHON) src/scripts/export-hf.py \
+		--checkpoint $(CHECKPOINT) \
+		--output_dir $(HF_DIR) \
+		--model_id $(MODEL_ID)
+
+export-gguf:
+	$(PYTHON) llama.cpp/convert_hf_to_gguf.py \
+		$(HF_DIR) \
+		--outfile $(GGUF_OUT) \
+		--outtype f16
+
+convert-all:
+	@for ckpt in checkpoints/*.pt; do \
+		stem=$$(basename $$ckpt .pt); \
+		$(MAKE) export-hf  CHECKPOINT=$$ckpt HF_DIR=hf-models/$$stem MODEL_ID=$(MODEL_ID); \
+		$(MAKE) export-gguf HF_DIR=hf-models/$$stem GGUF_OUT=gguf-models/$$stem.gguf; \
+	done
 
 format:
 	@echo "--> Formatting code (Black style)..."

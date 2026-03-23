@@ -1,101 +1,81 @@
 # ShellVibe
 
-Natural language → shell command (fine-tuned `Qwen/Qwen2.5-Coder-0.5B`).
+> Turn plain English into shell commands.
 
-## Install
+Fine-tuned `Qwen2.5-Coder-3B-Instruct` — runs fully local, no API keys.
+
+![CLI](assets/cli.png)
+
+## Setup
 
 ```bash
 brew install uv
 uv sync
 ```
 
-## Training
+## Checkpoints
 
-![Weights & Biases training run](assets/wandb.png)
+Download from [Google Drive](https://drive.google.com/drive/folders/1p7kHSM026taNygr955ef-siSQKdGFCGn?usp=sharing) and place in `checkpoints/`.
 
-## Demo
+| File | Description |
+|------|-------------|
+| `best_loss.pt` | Lowest validation loss |
+| `best_edit_distance.pt` | Best edit-distance metric |
+| `best-tested-manual.pt` | Best manually tested checkpoint |
 
-![Demo](assets/demo.gif)
+## Inference
 
-## Download model weights (required)
-
-1. Download a `.pt` from:
-
-   <https://drive.google.com/drive/folders/1p7kHSM026taNygr955ef-siSQKdGFCGn?usp=sharing>
-
-2. Put it in `checkpoints/` (e.g. `checkpoints/best_edit_distance.pt`).
-
-## Run inference
-
-### vibe CLI (recommended)
-
-The `vibe` CLI loads the model once into a background server so every subsequent call is fast (~1s). The server starts automatically on first use.
-
-**Setup** — add to your `~/.zshrc` or `~/.bashrc`:
-
-```bash
-vibe() {
-    uv run python /path/to/ShellVibe/vibe.py "$@"
-}
-```
-
-Then reload your shell:
-
-```bash
-source ~/.zshrc
-```
-
-**Usage:**
-
-```bash
-vibe list all files recursively
-vibe "show disk usage in human readable format"
-```
-
-Quotes are optional — both forms work. When a command is generated you get an accept/reject prompt. Accepting appends the command to `~/.vibe_history.sh` with a timestamp — nothing is executed automatically.
-
-**Stop the background server** when you're done:
-
-```bash
-make vibe-stop
-# or: pkill -f vibe_server.py
-```
-
-### Single instruction (no daemon)
-
+`.pt` — single shot:
 ```bash
 make inference INSTRUCTION="list all files recursively and show sizes"
 ```
 
-### Interactive mode (no daemon)
-
+`.pt` — interactive:
 ```bash
 make inference-interactive
 ```
 
-## Examples
+GGUF — single shot:
+```bash
+make inference-gguf GGUF=gguf-models/best_edit_distance.gguf \
+                    INSTRUCTION="kill process on port 8080"
+```
 
-Always review commands before running them.
+GGUF — interactive:
+```bash
+make inference-gguf GGUF=gguf-models/best_edit_distance.gguf
+```
 
-```text
-Instruction: list all files including hidden
-Command:     ls -a
+## Export
 
-Instruction: what is my current directory
-Command:     pwd
+`.pt` → HuggingFace:
+```bash
+make export-hf CHECKPOINT=checkpoints/best_edit_distance.pt \
+               MODEL_ID=hf-models/qwen-3b-inst \
+               HF_DIR=hf-models/best_edit_distance
+```
 
-Instruction: show git status
-Command:     git status
+HuggingFace → GGUF (f16):
+```bash
+make export-gguf HF_DIR=hf-models/best_edit_distance \
+                 GGUF_OUT=gguf-models/best_edit_distance.gguf
+```
 
-Instruction: count lines in README.md
-Command:     wc -l README.md
+All checkpoints in one shot:
+```bash
+make convert-all MODEL_ID=hf-models/qwen-3b-inst
+```
 
-Instruction: find all python files under src
-Command:     find src -name '*.py'
+## Training
 
-Instruction: extract logs.tar.gz into current directory
-Command:     tar xf logs.tar.gz
+```bash
+make train
+```
 
-Instruction: can you provide the command to decompress logs.gz?
-Command:     gzip -cd logs.gz > logs.txt
+Logs to W&B. Checkpoints saved to `checkpoints/` on best loss and best edit-distance.
+
+## Data pipeline
+
+```bash
+make preprocess-tldr   # parse TLDR pages → CSV
 ```
