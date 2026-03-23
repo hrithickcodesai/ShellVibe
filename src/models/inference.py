@@ -1,8 +1,8 @@
 import argparse
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
-MODEL_ID = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-Coder-3B-Instruct"
 SYSTEM_PROMPT = (
     "You are a helpful assistant that converts natural language instructions "
     "into shell commands. Output only the shell command, nothing else."
@@ -10,21 +10,22 @@ SYSTEM_PROMPT = (
 
 
 def load_model(checkpoint_path: str | None, device: str, dtype: torch.dtype):
-    print(f"Loading tokenizer from {MODEL_ID}...")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    print("Loading tokenizer (local cache only)...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, local_files_only=True)
 
-    print(f"Loading base model from {MODEL_ID}...")
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_ID,
-        torch_dtype=dtype,
-        attn_implementation="sdpa" if device == "cuda" else "eager",
-    )
+    print("Initializing model architecture from config (no weights downloaded)...")
+    config = AutoConfig.from_pretrained(MODEL_ID, local_files_only=True)
+    config.torch_dtype = dtype
+    config._attn_implementation = "sdpa" if device == "cuda" else "eager"
+    model = AutoModelForCausalLM.from_config(config).to(dtype)
 
     if checkpoint_path:
         print(f"Loading fine-tuned weights from {checkpoint_path}...")
         state_dict = torch.load(checkpoint_path, map_location=device, weights_only=True)
         model.load_state_dict(state_dict)
         print("Checkpoint loaded.")
+    else:
+        print("No checkpoint provided — using randomly initialized weights.")
 
     model.to(device)
     model.eval()
