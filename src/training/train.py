@@ -21,7 +21,7 @@ config = {
     "use_wandb": True,
     "out_dir": "qwen2.5-coder-1.5b-checkpoints",
     "data_dir": "data/preprocessed",
-    "batch_size": 8,
+    "batch_size": 32,
     "max_lr": 2e-5,
     "min_lr_ratio": 0.10,
     "warmup_steps": 250,
