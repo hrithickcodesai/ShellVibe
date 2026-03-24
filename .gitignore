@@ -225,7 +225,6 @@ data/raw/osx/*
 data/raw/common/*
 
 data/preprocessed/intermediate/*.csv
-runpod/*
+runpod
 gguf-models
-hf-models/*
-llama.cpp/*
+hf-models
