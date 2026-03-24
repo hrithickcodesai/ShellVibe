@@ -26,8 +26,7 @@ class SFTDataset(Dataset):
         start_idx = int(self.offsets[idx])
         end_idx = int(self.offsets[idx + 1])
 
-        # converting to pytorch tensor
-        tokens = torch.from_numpy(self.data[start_idx:end_idx]).long()
+        tokens = torch.from_numpy(self.data[start_idx:end_idx].copy()).long()
 
         # creating targets
         labels = tokens.clone()
