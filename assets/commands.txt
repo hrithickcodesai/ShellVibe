@@ -50,9 +50,9 @@ Generate tokenised training bins from the preprocessed CSVs:
     --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
     --lora_target_modules q_proj k_proj v_proj o_proj \
     --lora_bias none \
-    --batch_size 32 --grad_accum_steps 4 \
+    --batch_size 16 --grad_accum_steps 8 \
     --max_lr 2e-4 --min_lr_ratio 0.10 \
-    --warmup_steps 100 --max_epochs 3 \
+    --warmup_steps 100 --max_epochs 2 \
     --eval_interval 250 --log_interval 1 \
     --grad_clip 1.0 --weight_decay 0.01 \
     --wandb_project qwen2.5-coder-3b-lora --wandb_mode online
@@ -87,6 +87,52 @@ LoRA adapter (saved adapter directory):
     --base_model_id Qwen/Qwen2.5-Coder-7B-Instruct \
     --adapter_dir <out_dir>/best_loss_adapter \
     --instruction "list all running docker containers"
+
+###############################################################################
+# EXPORT — LoRA adapter → merged HF model → GGUF (llama.cpp)
+###############################################################################
+
+Prerequisites:
+  # Build llama.cpp once on the pod
+  git clone https://github.com/ggerganov/llama.cpp /workspace/llama.cpp
+  cd /workspace/llama.cpp && cmake -B build && cmake --build build --config Release -j$(nproc)
+  source /workspace/ShellVibe/.venv/bin/activate
+  pip install -r /workspace/llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
+
+Export (merge adapter + quantise to Q8_0):
+  source .venv/bin/activate
+  python3 -m src.scripts.export-lora-gguf \
+    --base_model_id  Qwen/Qwen2.5-Coder-3B-Instruct \
+    --adapter_dir    qwen2.5-coder-3b-lora-checkpoints/best_loss_adapter \
+    --output_dir     exports/qwen2.5-3b-merged \
+    --gguf_out       exports/qwen2.5-3b-q8.gguf \
+    --llama_cpp_dir  /workspace/llama.cpp \
+    --quant_type     Q8_0
+
+  Available --quant_type values (in order of size/quality):
+    f16            no quantisation, largest, reference quality
+    Q8_0           ~8-bit, near-lossless, recommended default
+    Q6_K           ~6-bit, minor quality drop, ~25% smaller than Q8
+    Q5_K_M         ~5-bit, good quality/size balance
+    Q4_K_M         ~4-bit, good quality for inference on consumer GPU/CPU
+    Q3_K_M         ~3-bit, noticeable degradation but very small
+    Q2_K           ~2-bit, only for size-constrained edge deployment
+
+  If merged HF model already exists (re-quantise only):
+  python3 -m src.scripts.export-lora-gguf \
+    --base_model_id  Qwen/Qwen2.5-Coder-3B-Instruct \
+    --adapter_dir    qwen2.5-coder-3b-lora-checkpoints/best_loss_adapter \
+    --output_dir     exports/qwen2.5-3b-merged \
+    --gguf_out       exports/qwen2.5-3b-q4.gguf \
+    --llama_cpp_dir  /workspace/llama.cpp \
+    --quant_type     Q4_K_M \
+    --skip_merge
+
+Run with llama.cpp:
+  /workspace/llama.cpp/build/bin/llama-cli \
+    -m exports/qwen2.5-3b-q8.gguf \
+    -p "<|im_start|>system\nYou are a helpful assistant that converts natural language instructions into shell commands. Output only the shell command, nothing else.<|im_end|>\n<|im_start|>user\nlist all running docker containers<|im_end|>\n<|im_start|>assistant\n" \
+    --temp 0 -n 64
 
   Interactive LoRA mode (omit --instruction):
   python3 -m src.scripts.inference-lora \
