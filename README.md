@@ -4,7 +4,7 @@
 
 ShellVibe is a family of fine-tuned language models that translate plain English into shell commands — running **fully local**, with no API keys or internet connection required.
 
-![CLI demo](assets/cli.png)
+<img src="assets/cli.png" width="700"/>
 
 ---
 
