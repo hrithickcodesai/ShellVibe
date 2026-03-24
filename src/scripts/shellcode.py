@@ -1,7 +1,6 @@
 import argparse
 from llama_cpp import Llama
 from rich.console import Console
-from rich.panel import Panel
 from rich.text import Text
 from rich.rule import Rule
 from rich.theme import Theme
@@ -15,24 +14,31 @@ MODEL_PATHS = {
     "3b": "gguf-models/qwen_3b_q8.gguf",
 }
 
-BANNER = r"""
-  ███████╗██╗  ██╗███████╗██╗     ██╗      ██████╗ ██████╗ ██████╗ ███████╗
-  ██╔════╝██║  ██║██╔════╝██║     ██║     ██╔════╝██╔═══██╗██╔══██╗██╔════╝
-  ███████╗███████║█████╗  ██║     ██║     ██║     ██║   ██║██║  ██║█████╗  
-  ╚════██║██╔══██║██╔══╝  ██║     ██║     ██║     ██║   ██║██║  ██║██╔══╝  
-  ███████║██║  ██║███████╗███████╗███████╗╚██████╗╚██████╔╝██████╔╝███████╗
-  ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═════╝╚══════╝
-"""
+BANNER_LINES = [
+    r"  ███████╗██╗  ██╗███████╗██╗     ██╗      ██╗   ██╗██╗██████╗ ███████╗",
+    r"  ██╔════╝██║  ██║██╔════╝██║     ██║      ██║   ██║██║██╔══██╗██╔════╝",
+    r"  ███████╗███████║█████╗  ██║     ██║      ██║   ██║██║██████╔╝█████╗  ",
+    r"  ╚════██║██╔══██║██╔══╝  ██║     ██║      ╚██╗ ██╔╝██║██╔══██╗██╔══╝  ",
+    r"  ███████║██║  ██║███████╗███████╗███████╗  ╚████╔╝ ██║██████╔╝███████╗",
+    r"  ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═══╝  ╚═╝╚═════╝ ╚══════╝",
+]
+
+GRADIENT = [
+    "bold color(129)",
+    "bold color(135)",
+    "bold color(141)",
+    "bold color(147)",
+    "bold color(153)",
+    "bold color(159)",
+]
 
 CUSTOM_THEME = Theme(
     {
-        "banner": "bold green",
-        "subtitle": "dim cyan",
-        "prompt.arrow": "bold bright_green",
-        "prompt.label": "bold white",
-        "command": "bold bright_cyan",
-        "meta": "dim white",
-        "goodbye": "dim green",
+        "subtitle": "bold color(141)",
+        "prompt.arrow": "bold color(129)",
+        "command": "bold bright_green",
+        "meta": "dim color(147)",
+        "goodbye": "dim color(141)",
     }
 )
 
@@ -42,25 +48,20 @@ def build_console() -> Console:
 
 
 def print_banner(console: Console, model_size: str) -> None:
-    banner_text = Text(BANNER, style="banner")
-    console.print(banner_text)
+    for line, color in zip(BANNER_LINES, GRADIENT):
+        console.print(line, style=color)
 
-    subtitle = Text("  natural language  →  shell command", style="subtitle")
-    console.print(subtitle)
-
-    meta = Text(
-        f"  model: qwen2.5-{model_size}  ·  type 'exit' or Ctrl-C to quit",
-        style="meta",
+    console.print()
+    console.print(Text("  speak naturally  ·  get the command", style="subtitle"))
+    console.print(
+        Text(f"  model · qwen2.5-{model_size}  ·  type exit to quit", style="meta")
     )
-    console.print(meta)
-    console.print(Rule(style="dim green"))
+    console.print(Rule(style="color(57)"))
 
 
 def load_model(model_size: str, n_gpu_layers: int, console: Console) -> Llama:
     path = MODEL_PATHS[model_size]
-    with console.status(
-        f"[bold green]Loading model[/] [dim]{path}[/]...", spinner="dots"
-    ):
+    with console.status(f"[color(135)]loading[/] [dim]{path}[/]", spinner="dots"):
         model = Llama(
             model_path=path,
             n_ctx=512,
@@ -68,7 +69,7 @@ def load_model(model_size: str, n_gpu_layers: int, console: Console) -> Llama:
             n_threads=8,
             verbose=False,
         )
-    console.print("  [bold green]✓[/] Model ready\n")
+    console.print("  [bold color(129)]◆[/] [dim]model ready[/]\n")
     return model
 
 
@@ -94,33 +95,26 @@ def interactive_mode(model: Llama, console: Console, model_size: str) -> None:
             console.print("[prompt.arrow]❯[/] ", end="")
             nl = input().strip()
         except (EOFError, KeyboardInterrupt):
-            console.print("\n[goodbye]  Goodbye. Happy hacking.[/]", highlight=False)
+            console.print("\n[goodbye]  stay in the vibe ✦[/]", highlight=False)
             break
 
         if not nl:
             continue
 
         if nl.lower() in ("quit", "exit"):
-            console.print("[goodbye]  Goodbye. Happy hacking.[/]", highlight=False)
+            console.print("[goodbye]  stay in the vibe ✦[/]", highlight=False)
             break
 
-        with console.status("[dim]Generating...[/]", spinner="dots"):
+        with console.status("[dim]thinking...[/]", spinner="dots"):
             command = predict(nl, model)
 
-        command_text = Text(f"  {command}", style="command")
-        panel = Panel(
-            command_text,
-            title="[bold white]Command[/]",
-            border_style="cyan",
-            padding=(0, 1),
-        )
-        console.print(panel)
+        console.print(f"  [command]{command}[/]")
         console.print()
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="ShellCode — natural language → shell command"
+        description="ShellVibe — natural language → shell command"
     )
     parser.add_argument("--model_size", choices=["3b"], default="3b")
     parser.add_argument("--instruction", type=str, default=None)
@@ -128,8 +122,8 @@ def main() -> None:
     parser.add_argument(
         "--n_gpu_layers",
         type=int,
-        default=0,
-        help="-1 = full GPU offload, 0 = CPU only",
+        default=-1,
+        help="-1 = full GPU offload (Metal on macOS), 0 = CPU only",
     )
     args = parser.parse_args()
 
@@ -138,14 +132,7 @@ def main() -> None:
 
     if args.instruction:
         command = predict(args.instruction, model, args.max_new_tokens)
-        console.print(
-            Panel(
-                Text(f"  {command}", style="command"),
-                title=f"[bold white]{args.instruction}[/]",
-                border_style="cyan",
-                padding=(0, 1),
-            )
-        )
+        console.print(f"  [command]{command}[/]")
     else:
         interactive_mode(model, console, args.model_size)
 

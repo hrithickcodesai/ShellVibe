@@ -228,3 +228,5 @@ data/preprocessed/intermediate/*.csv
 runpod
 gguf-models
 hf-models
+llama.cpp
+exports
