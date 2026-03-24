@@ -16,7 +16,7 @@ def load_model(checkpoint_path: str | None, device: str, dtype: torch.dtype):
     print("Initializing model architecture from config (no weights downloaded)...")
     config = AutoConfig.from_pretrained(MODEL_ID, local_files_only=True)
     config.torch_dtype = dtype
-    config._attn_implementation = "sdpa" if device == "cuda" else "eager"   
+    config._attn_implementation = "sdpa" if device == "cuda" else "eager"
     model = AutoModelForCausalLM.from_config(config).to(dtype)
 
     if checkpoint_path:
