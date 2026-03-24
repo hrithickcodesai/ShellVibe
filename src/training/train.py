@@ -471,18 +471,14 @@ def main():
             if device_type == "cuda":
                 torch.cuda.synchronize()
 
-            print(
-                f"[GRAD UPDATE] step {step:5d} | epoch {epoch} | "
-                f"grad_norm={grad_norm:.4f} | lr={lr:.2e}"
-            )
-
             dt = time.time() - window_t0
             tokens_per_sec = window_tokens / dt
 
             if step % args.log_interval == 0:
                 print(
-                    f"             -> loss: {accum_loss:.4f} | "
-                    f"dt: {dt * 1000:.2f}ms | tok/s: {tokens_per_sec:.0f}"
+                    f"step {step:5d} | epoch {epoch} | loss: {accum_loss:.4f} | "
+                    f"norm: {grad_norm:.4f} | lr: {lr:.2e} | "
+                    f"dt: {dt * 1000:.0f}ms | tok/s: {tokens_per_sec:.0f}"
                 )
                 if args.use_wandb:
                     wandb.log(
