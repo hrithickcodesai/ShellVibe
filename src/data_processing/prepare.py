@@ -70,7 +70,19 @@ def prepare():
         meta_path = os.path.join(OUTPUT_DIR, f"{split_name}_meta.bin")
         meta_arr.tofile(meta_path)
 
-        print(f"Saved {len(all_ids)} tokens to {bin_path}")
+        lengths = [m[0] for m in metadata]
+        lengths_arr = np.array(lengths)
+        print(f"\n  [{split_name}] sequence length stats (tokens):")
+        print(f"    count  : {len(lengths_arr)}")
+        print(f"    min    : {lengths_arr.min()}")
+        print(f"    max    : {lengths_arr.max()}")
+        print(f"    mean   : {lengths_arr.mean():.1f}")
+        print(f"    median : {np.median(lengths_arr):.1f}")
+        print(f"    p90    : {np.percentile(lengths_arr, 90):.1f}")
+        print(f"    p95    : {np.percentile(lengths_arr, 95):.1f}")
+        print(f"    p99    : {np.percentile(lengths_arr, 99):.1f}")
+
+        print(f"\nSaved {len(all_ids)} tokens to {bin_path}")
         print(f"Saved {len(metadata)} rows of metadata to {meta_path}")
 
 

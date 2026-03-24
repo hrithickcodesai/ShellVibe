@@ -1,0 +1,94 @@
+###############################################################################
+# SETUP
+###############################################################################
+
+Install deps:
+  pip install datasets levenshtein matplotlib python-dotenv peft seaborn torch tqdm transformers wandb wordcloud
+
+###############################################################################
+# DATA PREPARATION
+###############################################################################
+
+Generate tokenised training bins from the preprocessed CSVs:
+  python3 -m src.data_processing.prepare
+
+  Inputs  : data/preprocessed/train.csv, data/preprocessed/test.csv
+  Outputs : data/preprocessed/train.bin, data/preprocessed/train_meta.bin
+             data/preprocessed/test.bin,  data/preprocessed/test_meta.bin
+
+###############################################################################
+# TRAINING — recommended hyperparameters per model (A100 40 GB, bfloat16)
+#
+#  Notation
+#    effective_batch = batch_size * grad_accum_steps
+#    target effective_batch ~= 128–256 tokens-worth of sequences
+#
+###############################################################################
+
+--- Qwen2.5-Coder-1.5B-Instruct (~1.5 B params) ---
+  python3 -m src.training.train \
+    --model_id Qwen/Qwen2.5-Coder-1.5B-Instruct \
+    --out_dir qwen2.5-coder-1.5b-lora-checkpoints \
+    --data_dir data/preprocessed \
+    --use_lora \
+    --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+    --lora_target_modules q_proj k_proj v_proj o_proj \
+    --lora_bias none \
+    --batch_size 16 --grad_accum_steps 8 \
+    --max_lr 2e-4 --min_lr_ratio 0.10 \
+    --warmup_steps 100 --max_epochs 3 \
+    --eval_interval 250 --log_interval 1 \
+    --grad_clip 1.0 --weight_decay 0.01 \
+    --wandb_project qwen2.5-coder-1.5b-lora --wandb_mode online
+
+--- Qwen2.5-Coder-3B-Instruct (~3 B params) ---
+  python3 -m src.training.train \
+    --model_id Qwen/Qwen2.5-Coder-3B-Instruct \
+    --out_dir qwen2.5-coder-3b-lora-checkpoints \
+    --data_dir data/preprocessed \
+    --use_lora \
+    --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+    --lora_target_modules q_proj k_proj v_proj o_proj \
+    --lora_bias none \
+    --batch_size 8 --grad_accum_steps 16 \
+    --max_lr 2e-4 --min_lr_ratio 0.10 \
+    --warmup_steps 100 --max_epochs 3 \
+    --eval_interval 250 --log_interval 1 \
+    --grad_clip 1.0 --weight_decay 0.01 \
+    --wandb_project qwen2.5-coder-3b-lora --wandb_mode online
+
+--- Qwen2.5-Coder-7B-Instruct (~7 B params) ---  ← recommended default
+  python3 -m src.training.train \
+    --model_id Qwen/Qwen2.5-Coder-7B-Instruct \
+    --out_dir qwen2.5-coder-7b-lora-checkpoints \
+    --data_dir data/preprocessed \
+    --use_lora \
+    --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+    --lora_target_modules q_proj k_proj v_proj o_proj \
+    --lora_bias none \
+    --batch_size 4 --grad_accum_steps 32 \
+    --max_lr 2e-4 --min_lr_ratio 0.10 \
+    --warmup_steps 100 --max_epochs 2 \
+    --eval_interval 250 --log_interval 1 \
+    --grad_clip 1.0 --weight_decay 0.01 \
+    --wandb_project qwen2.5-coder-7b-lora --wandb_mode online
+
+###############################################################################
+# INFERENCE
+###############################################################################
+
+Standard (full fine-tune checkpoint .pt):
+  python3 -m src.scripts.inference \
+    --checkpoint <out_dir>/best_loss.pt \
+    --instruction "list all running docker containers"
+
+LoRA adapter (saved adapter directory):
+  python3 -m src.scripts.inference-lora \
+    --base_model_id Qwen/Qwen2.5-Coder-7B-Instruct \
+    --adapter_dir <out_dir>/best_loss_adapter \
+    --instruction "list all running docker containers"
+
+  Interactive LoRA mode (omit --instruction):
+  python3 -m src.scripts.inference-lora \
+    --base_model_id Qwen/Qwen2.5-Coder-7B-Instruct \
+    --adapter_dir <out_dir>/best_loss_adapter
