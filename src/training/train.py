@@ -27,7 +27,7 @@ config = {
     "warmup_steps": 250,
     "max_epochs": 2,
     "log_interval": 1,
-    "eval_interval": 200,
+    "eval_interval": 1000,
     "grad_clip": 1.0,
     "grad_accum_steps": 128,
     "weight_decay": 0.01,
