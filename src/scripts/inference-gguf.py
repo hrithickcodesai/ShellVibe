@@ -1,4 +1,6 @@
 import argparse
+import platform
+import time
 from llama_cpp import Llama
 
 SYSTEM_PROMPT = (
@@ -6,8 +8,21 @@ SYSTEM_PROMPT = (
     "into shell commands. Output only the shell command, nothing else."
 )
 
+MODEL_PATHS = {
+    "0.5b": "gguf-models/qwen2.5-0.5b-inst-q8_0.gguf",
+    "1.5b": "gguf-models/qwen2.5-1.5b-inst-q8_0.gguf",
+    "3b": "gguf-models/qwen2.5-3b-inst-q8_0.gguf",
+}
 
-def load_model(model_path: str, n_gpu_layers: int = -1) -> Llama:
+
+def detect_backend() -> tuple[int, str]:
+    """Auto-detect Metal on macOS, CPU otherwise."""
+    if platform.system() == "Darwin":
+        return -1, "metal"
+    return 0, "cpu"
+
+
+def load_model(model_path: str, n_gpu_layers: int) -> Llama:
     print(f"Loading {model_path}...")
     return Llama(
         model_path=model_path,
@@ -18,7 +33,10 @@ def load_model(model_path: str, n_gpu_layers: int = -1) -> Llama:
     )
 
 
-def predict(nl_instruction: str, model: Llama, max_new_tokens: int = 128) -> str:
+def predict(
+    nl_instruction: str, model: Llama, max_new_tokens: int = 128
+) -> tuple[str, float]:
+    start = time.perf_counter()
     response = model.create_chat_completion(
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -29,7 +47,11 @@ def predict(nl_instruction: str, model: Llama, max_new_tokens: int = 128) -> str
         repeat_penalty=1.0,
         stop=["<|im_end|>"],
     )
-    return response["choices"][0]["message"]["content"].strip()
+    elapsed = time.perf_counter() - start
+    text = response["choices"][0]["message"]["content"].strip()
+    completion_tokens = response.get("usage", {}).get("completion_tokens", 1)
+    tps = completion_tokens / elapsed if elapsed > 0 else 0.0
+    return text, tps
 
 
 def interactive_mode(model: Llama):
@@ -42,8 +64,9 @@ def interactive_mode(model: Llama):
             break
         if nl.lower() in ("quit", "exit", ""):
             break
-        command = predict(nl, model)
-        print(f"Command:     {command}\n")
+        command, tps = predict(nl, model)
+        print(f"Command:     {command}")
+        print(f"Speed:       {tps:.1f} tok/s\n")
 
 
 def main():
@@ -51,10 +74,10 @@ def main():
         description="ShellVibe GGUF inference: natural language → shell command"
     )
     parser.add_argument(
-        "--model_path",
-        type=str,
-        required=True,
-        help="Path to the GGUF model file (e.g. gguf-models/best_edit_distance.gguf)",
+        "--model",
+        choices=["0.5b", "1.5b", "3b"],
+        default="3b",
+        help="Model size to use",
     )
     parser.add_argument(
         "--instruction",
@@ -66,20 +89,18 @@ def main():
         type=int,
         default=128,
     )
-    parser.add_argument(
-        "--n_gpu_layers",
-        type=int,
-        default=0,
-        help="-1 = full GPU offload, 0 = CPU only",
-    )
     args = parser.parse_args()
 
-    model = load_model(args.model_path, args.n_gpu_layers)
+    n_gpu_layers, backend = detect_backend()
+    model_path = MODEL_PATHS[args.model]
+    print(f"Backend: {backend}")
+    model = load_model(model_path, n_gpu_layers)
 
     if args.instruction:
-        command = predict(args.instruction, model, args.max_new_tokens)
+        command, tps = predict(args.instruction, model, args.max_new_tokens)
         print(f"\nInstruction: {args.instruction}")
         print(f"Command:     {command}")
+        print(f"Speed:       {tps:.1f} tok/s")
     else:
         interactive_mode(model)
 

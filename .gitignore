@@ -225,8 +225,9 @@ data/raw/osx/*
 data/raw/common/*
 
 data/preprocessed/intermediate/*.csv
-runpod
+pytorch-models
 gguf-models
 hf-models
 llama.cpp
 exports
+*.bin

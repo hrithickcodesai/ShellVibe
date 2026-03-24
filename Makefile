@@ -1,58 +1,64 @@
 PYTHON ?= uv run python
 PYTHON_FILES = src
-CHECKPOINT ?= checkpoints/best_edit_distance.pt
-MODEL_ID  ?= hf-models/qwen-3b-inst
-CKPT_STEM  = $(basename $(notdir $(CHECKPOINT)))
-HF_DIR    ?= hf-models/$(CKPT_STEM)
-GGUF_OUT  ?= gguf-models/$(CKPT_STEM).gguf
 
-.PHONY: help format preprocess-tldr export-hf export-gguf convert-all inference-gguf inference inference-interactive
-
-GGUF ?= gguf-models/$(CKPT_STEM).gguf
-INSTRUCTION ?=
+.PHONY: help format preprocess-tldr convert-0.5b convert-1.5b convert-3b run-0.5b run-1.5b run-3b
 
 help:
 	@echo "Available commands:"
-	@echo "  make format                                      - Format code and sort imports (via Ruff)"
-	@echo "  make preprocess-tldr                             - Parse TLDR markdown files to CSV"
+	@echo "  make format                  - Format code and sort imports"
+	@echo "  make preprocess-tldr         - Parse TLDR markdown files to CSV"
 	@echo ""
-	@echo "  make export-hf   [CHECKPOINT=...] [MODEL_ID=...]  - Export .pt → HuggingFace (hf-models/<name>/)"
-	@echo "  make export-gguf [HF_DIR=...]                    - Convert HF model → GGUF (gguf-models/<name>.gguf)"
-	@echo "  make convert-all [MODEL_ID=...]                  - Run full pipeline for all checkpoints/*.pt"
-	@echo "  make inference-gguf GGUF=<path> [INSTRUCTION=...]  - Run GGUF inference (interactive if no INSTRUCTION)"
-	@echo "  make inference [INSTRUCTION=...]                  - Run .pt inference (interactive if no INSTRUCTION)"
+	@echo "  make run-0.5b                - Run ShellVibe with 0.5B model"
+	@echo "  make run-1.5b                - Run ShellVibe with 1.5B model"
+	@echo "  make run-3b                  - Run ShellVibe with 3B model"
+	@echo ""
+	@echo "  make convert-0.5b            - Convert 0.5B: .pt → HF → GGUF"
+	@echo "  make convert-1.5b            - Convert 1.5B: .pt → HF → GGUF"
+	@echo "  make convert-3b              - Convert 3B: .pt → HF → GGUF"
 
-inference:
-	$(PYTHON) src/scripts/inference.py \
-		--checkpoint $(CHECKPOINT) \
-		$(if $(INSTRUCTION),--instruction "$(INSTRUCTION)")
+# run inference
+run-0.5b:
+	$(PYTHON) src/scripts/shellcode.py --model_size 0.5b
 
-inference-interactive:
-	$(PYTHON) src/scripts/inference.py --checkpoint $(CHECKPOINT)
+run-1.5b:
+	$(PYTHON) src/scripts/shellcode.py --model_size 1.5b
 
-inference-gguf:
-	$(PYTHON) src/scripts/inference-gguf.py \
-		--model_path $(GGUF) \
-		$(if $(INSTRUCTION),--instruction "$(INSTRUCTION)")
+run-3b:
+	$(PYTHON) src/scripts/shellcode.py --model_size 3b
 
-export-hf:
+# convert to GGUF for llama.cpp
+convert-0.5b:
+	@echo "Converting 0.5B model..."
 	$(PYTHON) src/scripts/export-hf.py \
-		--checkpoint $(CHECKPOINT) \
-		--output_dir $(HF_DIR) \
-		--model_id $(MODEL_ID)
-
-export-gguf:
+		--checkpoint pytorch-models/qwen2.5-0.5b-inst-ckpt/best_edit_distance.pt \
+		--output_dir hf-models/qwen2.5-0.5b-inst \
+		--model_id Qwen/Qwen2.5-0.5B-Instruct
 	$(PYTHON) llama.cpp/convert_hf_to_gguf.py \
-		$(HF_DIR) \
-		--outfile $(GGUF_OUT) \
-		--outtype f16
+		hf-models/qwen2.5-0.5b-inst \
+		--outfile gguf-models/qwen2.5-0.5b-inst-q8_0.gguf \
+		--outtype q8_0
 
-convert-all:
-	@for ckpt in checkpoints/*.pt; do \
-		stem=$$(basename $$ckpt .pt); \
-		$(MAKE) export-hf  CHECKPOINT=$$ckpt HF_DIR=hf-models/$$stem MODEL_ID=$(MODEL_ID); \
-		$(MAKE) export-gguf HF_DIR=hf-models/$$stem GGUF_OUT=gguf-models/$$stem.gguf; \
-	done
+convert-1.5b:
+	@echo "Converting 1.5B model..."
+	$(PYTHON) src/scripts/export-hf.py \
+		--checkpoint pytorch-models/qwen2.5-1.5b-inst-ckpt/best_edit_distance.pt \
+		--output_dir hf-models/qwen2.5-1.5b-inst \
+		--model_id Qwen/Qwen2.5-1.5B-Instruct
+	$(PYTHON) llama.cpp/convert_hf_to_gguf.py \
+		hf-models/qwen2.5-1.5b-inst \
+		--outfile gguf-models/qwen2.5-1.5b-inst-q8_0.gguf \
+		--outtype q8_0
+
+convert-3b:
+	@echo "Converting 3B model..."
+	$(PYTHON) src/scripts/export-hf.py \
+		--checkpoint pytorch-models/qwen2.5-3b-inst-ckpt/best_edit_distance.pt \
+		--output_dir hf-models/qwen2.5-3b-inst \
+		--model_id Qwen/Qwen2.5-3B-Instruct
+	$(PYTHON) llama.cpp/convert_hf_to_gguf.py \
+		hf-models/qwen2.5-3b-inst \
+		--outfile gguf-models/qwen2.5-3b-inst-q8_0.gguf \
+		--outtype q8_0
 
 format:
 	@echo "--> Formatting code (Black style)..."
